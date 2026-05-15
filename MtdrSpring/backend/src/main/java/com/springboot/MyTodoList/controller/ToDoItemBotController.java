@@ -4,8 +4,8 @@ import com.springboot.MyTodoList.config.BotProps;
 import com.springboot.MyTodoList.repository.AppUserRepository;
 import com.springboot.MyTodoList.service.JoinCodeService;
 import com.springboot.MyTodoList.service.DeepSeekService;
-import com.springboot.MyTodoList.service.ProjectService;
 import com.springboot.MyTodoList.service.TaskService;
+import com.springboot.MyTodoList.service.ToDoItemService;
 import com.springboot.MyTodoList.util.BotActions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,37 +20,34 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @Component
-public class ToDoItemBotController
-        implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
+public class ToDoItemBotController implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
+    private ToDoItemService toDoItemService;
+    private DeepSeekService deepSeekService;
+    private TaskService taskService;
+    private final TelegramClient telegramClient;
 
-    private final BotProps           botProps;
-    private final TaskService        taskService;
-    private final DeepSeekService    deepSeekService;
-    private final AppUserRepository  userRepository;
-    private final JoinCodeService    joinCodeService;
-    private final ProjectService     projectService;
-    private final TelegramClient     telegramClient;
+    private final BotProps botProps;
 
-    public ToDoItemBotController(BotProps botProps,
-                                 TaskService taskService,
-                                 DeepSeekService deepSeekService,
-                                 AppUserRepository userRepository,
-                                 JoinCodeService joinCodeService,
-                                 ProjectService projectService) {
-        this.botProps           = botProps;
-        this.taskService        = taskService;
-        this.deepSeekService    = deepSeekService;
-        this.userRepository     = userRepository;
-        this.joinCodeService    = joinCodeService;
-        this.projectService     = projectService;
-        this.telegramClient     = new OkHttpTelegramClient(botProps.getToken());
-    }
+    @Value("${telegram.bot.token}")
+    private String telegramBotToken;
 
     @Override
     public String getBotToken() {
-        return botProps.getToken();
+        if (telegramBotToken != null && !telegramBotToken.trim().isEmpty()) {
+            return telegramBotToken;
+        } else {
+            return botProps.getToken();
+        }
+    }
+
+    public ToDoItemBotController(BotProps bp, ToDoItemService tsvc, DeepSeekService ds, TaskService taskService) {
+        this.botProps = bp;
+        this.telegramClient = new OkHttpTelegramClient(getBotToken());
+        this.toDoItemService = tsvc;
+        this.deepSeekService = ds;
+        this.taskService = taskService;
     }
 
     @Override
@@ -60,39 +57,45 @@ public class ToDoItemBotController
 
     @Override
     public void consume(Update update) {
+
         if (!update.hasMessage() || !update.getMessage().hasText()) return;
 
-        String messageText = update.getMessage().getText();
-        long   chatId      = update.getMessage().getChatId();
+        String messageTextFromTelegram = update.getMessage().getText();
+        long chatId = update.getMessage().getChatId();
 
-        // BotActions is stateless per message; session state lives in a static Map.
-        BotActions actions = new BotActions(
-                telegramClient,
-                taskService,
-                deepSeekService,
-                userRepository,
-                joinCodeService,
-                projectService
-        );
-        actions.setRequestText(messageText);
+        String telegramUsername = null;
+        if (update.getMessage().getFrom() != null) {
+            telegramUsername = update.getMessage().getFrom().getUserName();
+        }
+
+        BotActions actions = new BotActions(telegramClient, toDoItemService, deepSeekService, taskService);
+        actions.setRequestText(messageTextFromTelegram);
         actions.setChatId(chatId);
+        actions.setTelegramUsername(telegramUsername);
 
-        // ── Multi-step state machine first ────────────────────────
+        if (actions.getTodoService() == null) {
+            logger.info("todosvc error");
+            actions.setTodoService(toDoItemService);
+        }
+
+        if (actions.getTaskService() == null) {
+            logger.info("tasksvc error");
+            actions.setTaskService(taskService);
+        }
+
         if (actions.handleState()) {
             return;
         }
 
-        // ── Single-step commands ──────────────────────────────────
         actions.fnStart();
-        actions.fnConfigUser();
-        actions.fnModifyTask();
+        actions.fnModfiyTask();
         actions.fnModName();
         actions.fnModStatus();
         actions.fnModWorked();
         actions.fnModExpected();
         actions.fnNewTask();
         actions.fnListMyTasks();
-        actions.fnElse();   // must be last
+        actions.fnElse();
     }
 
     @AfterBotRegistration

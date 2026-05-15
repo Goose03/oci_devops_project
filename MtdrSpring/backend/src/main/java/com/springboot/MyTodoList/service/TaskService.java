@@ -163,6 +163,59 @@ public class TaskService {
     }
 
     // ─────────────────────────────────────────────────────────────
+    // CREATE TASK FROM TELEGRAM
+    // ─────────────────────────────────────────────────────────────
+
+    @Transactional
+    public TaskDTO createTaskFromTelegram(String telegramUsername, String title, Integer expectedHours) {
+        log.info("🤖 [TELEGRAM] Creating task from Telegram user '{}', title='{}', expectedHours={}",
+                telegramUsername, title, expectedHours);
+
+        if (telegramUsername == null || telegramUsername.isBlank()) {
+            throw new RuntimeException("Telegram username not found");
+        }
+
+        String cleanUsername = telegramUsername.startsWith("@")
+                ? telegramUsername.substring(1)
+                : telegramUsername;
+
+        AppUser user = userRepository.findByTelegramUsernameIgnoreCase(cleanUsername)
+                .orElseThrow(() -> new RuntimeException(
+                        "No app user is linked to Telegram username: " + cleanUsername));
+
+        List<TeamMembership> memberships = membershipRepository.findByUser(user);
+
+        if (memberships.isEmpty()) {
+            throw new RuntimeException("This user does not belong to any team");
+        }
+
+        List<Team> teams = memberships.stream()
+                .map(TeamMembership::getTeam)
+                .collect(Collectors.toList());
+
+        List<Project> projects = projectRepository.findByTeamIn(teams);
+
+        if (projects.isEmpty()) {
+            throw new RuntimeException("No projects found for this user's teams");
+        }
+
+        Project selectedProject = projects.stream()
+                .filter(project -> "active".equalsIgnoreCase(project.getStatus()))
+                .findFirst()
+                .orElse(projects.get(0));
+
+        CreateTaskRequest request = new CreateTaskRequest();
+        request.setTitle(title);
+        request.setDescription("Task created from Telegram bot");
+        request.setPriority("medium");
+        request.setType("task");
+        request.setProjectId(String.valueOf(selectedProject.getId()));
+        request.setWorkedHours(expectedHours);
+
+        return createTask(user.getId(), request);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // UPDATE TASK
     // ─────────────────────────────────────────────────────────────
 
@@ -292,3 +345,4 @@ public class TaskService {
         log.info("✅ [SUCCESS] Task {} deleted successfully", taskId);
     }
 }
+
