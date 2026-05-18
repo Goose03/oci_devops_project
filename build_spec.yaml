@@ -9,6 +9,7 @@ env:
 
   exportedVariables:
     - BuildServiceDemoVersion
+    - IMAGE_VERSION
 
 steps:
   - type: Command
@@ -26,13 +27,14 @@ steps:
               oci os object get --bucket-name reacttodo-e3g0k --name deployment_config.tgz --file deployment_config.tgz;
               tar -xzvf deployment_config.tgz;
               source env.sh;
-              cat at.cfg | docker login -u "ax2ruuecmcce/a00228158@tec.mx" --password-stdin qro.ocir.io
+              cat at.cfg | docker login -u "ax2ruuecmcce/a00228158@tec.mx" --password-stdin mx-queretaro-1.ocir.io
 
   - type: Command
     name: "Build"
     command:  cd MtdrSpring;
               source env.sh;
-              (cd backend;source build.sh)
+              (cd backend;source build.sh);
+              export IMAGE_VERSION=${OCI_BUILD_RUN_ID:-0.1}
 
 
 
