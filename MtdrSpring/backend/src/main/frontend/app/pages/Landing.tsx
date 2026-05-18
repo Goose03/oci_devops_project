@@ -69,7 +69,7 @@ export function Landing() {
               <h1 className="text-5xl lg:text-6xl mb-6 dark:text-white">
                 Project management made <span className="text-[#30c2b7]">simple</span>
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+              <p className="text-xl text-gray-100 dark:text-gray-400 mb-8">
                 Just to do It helps teams plan, track, and ship better software. 
                 From sprints to releases, manage everything in one place.
               </p>
