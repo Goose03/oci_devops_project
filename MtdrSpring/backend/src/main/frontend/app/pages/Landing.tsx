@@ -168,7 +168,7 @@ export function Landing() {
             <div>
               <h4 className="mb-4 dark:text-white">Product</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-green-600">Features</a></li>
+                <li><a href="#" className="hover:text-indigo-600">Features</a></li>
                 <li><a href="#" className="hover:text-indigo-600">Pricing</a></li>
                 <li><a href="#" className="hover:text-indigo-600">Integrations</a></li>
               </ul>
