@@ -12,6 +12,8 @@ import {
   TaskDistributionPoint,
   SprintKpiPoint,
 } from '../services/api';
+
+// VelocityPoint.week is reused as sprint name in sprint-based data
 import {
   Card,
   CardContent,
@@ -140,6 +142,8 @@ export function Dashboard({
   const [priorityData, setPriorityData] = useState<PriorityPoint[]>([]);
   const [workedHoursData, setWorkedHoursData] = useState<WorkedHoursPoint[]>([]);
   const [distributionData, setDistributionData] = useState<TaskDistributionPoint[]>([]);
+  const [velocityBySprintData, setVelocityBySprintData] = useState<VelocityPoint[]>([]);
+  const [workedHoursBySprintData, setWorkedHoursBySprintData] = useState<WorkedHoursPoint[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
@@ -165,17 +169,27 @@ export function Dashboard({
     const sid = selectedSprintId || undefined;
     setAnalyticsLoading(true);
     setAnalyticsError(null);
+    const sprintCalls = selectedProjectId
+      ? [
+          analyticsApi.getVelocityBySprint(selectedProjectId),
+          analyticsApi.getWorkedHoursBySprint(selectedProjectId),
+        ]
+      : [Promise.resolve([]), Promise.resolve([])];
+
     Promise.all([
       analyticsApi.getVelocity(12, pid, sid),
       analyticsApi.getPriorityDistribution(pid, sid),
       analyticsApi.getWorkedHours(12, pid, sid),
       analyticsApi.getTaskDistribution(pid, sid),
+      ...sprintCalls,
     ])
-      .then(([vel, pri, wh, dist]) => {
-        setVelocityData(vel);
-        setPriorityData(pri);
-        setWorkedHoursData(wh);
-        setDistributionData(dist);
+      .then(([vel, pri, wh, dist, velSprint, whSprint]) => {
+        setVelocityData(vel as VelocityPoint[]);
+        setPriorityData(pri as PriorityPoint[]);
+        setWorkedHoursData(wh as WorkedHoursPoint[]);
+        setDistributionData(dist as TaskDistributionPoint[]);
+        setVelocityBySprintData(velSprint as VelocityPoint[]);
+        setWorkedHoursBySprintData(whSprint as WorkedHoursPoint[]);
       })
       .catch((err) => {
         console.error('Analytics fetch failed:', err);
@@ -218,22 +232,24 @@ export function Dashboard({
       .finally(() => setKpiLoading(false));
   }, [selectedProjectId, selectedSprintId]);
 
-  // ── Transform worked-hours flat list → stacked bar format ──────
+  // ── Sprint-based worked hours → stacked bar format ─────────────
   const workedHoursChartData = (() => {
-    const weeks = Array.from(new Set(workedHoursData.map((d) => d.week))).sort();
-    const users = Array.from(new Set(workedHoursData.map((d) => d.userName)));
-    return weeks.map((w) => {
-      const row: Record<string, string | number> = { week: shortWeek(w) };
+    const sprints = Array.from(new Set(workedHoursBySprintData.map((d) => d.week)));
+    const users = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
+    return sprints.map((s) => {
+      const row: Record<string, string | number> = { week: s };
       users.forEach((u) => {
-        const entry = workedHoursData.find((d) => d.week === w && d.userName === u);
+        const entry = workedHoursBySprintData.find((d) => d.week === s && d.userName === u);
         row[u] = entry ? entry.hours : 0;
       });
       return row;
     });
   })();
-  const workedHoursUsers = Array.from(new Set(workedHoursData.map((d) => d.userName)));
+  const workedHoursUsers = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
 
-  const velocityChartData = velocityData.map((d) => ({ ...d, week: shortWeek(d.week) }));
+  const velocityChartData = velocityBySprintData.length > 0
+    ? velocityBySprintData.map((d) => ({ ...d, week: d.week }))
+    : velocityData.map((d) => ({ ...d, week: shortWeek(d.week) }));
   const priorityChartData = priorityData.map((d) => ({
     ...d,
     name: d.priority.charAt(0).toUpperCase() + d.priority.slice(1),
@@ -525,7 +541,7 @@ export function Dashboard({
             <CardTitle className="flex items-center gap-2 text-base">
               <Zap className="w-4 h-4 text-[#30c2b7]" />
               Task Completion Velocity
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Created vs Completed / week</Badge>
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Created vs Completed / sprint</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -606,9 +622,9 @@ formatter={(val: number, name: string) => [val, name]}                  />
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Clock className="w-4 h-4 text-indigo-800" />
+              <Clock className="w-4 h-4 text-indigo-500" />
               Worked Hours per Team Member
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Stacked by week</Badge>
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Stacked by sprint</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -241,7 +241,63 @@ public class AnalyticsService {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 5. TASK DISTRIBUTION BY TEAM MEMBER (percentages)
+    // 5a. VELOCITY BY SPRINT (tasks created vs completed per sprint)
+    // ─────────────────────────────────────────────────────────────
+
+    public List<VelocityDTO> getVelocityBySprint(Long userId, Long projectId) {
+        log.info("🚀 [ANALYTICS] Computing velocity by sprint for user {}, project={}", userId, projectId);
+
+        List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
+        sprints.sort(Comparator.comparing(Sprint::getId));
+
+        List<VelocityDTO> result = new ArrayList<>();
+        for (Sprint sprint : sprints) {
+            List<Task> tasks = taskRepository.findByProjectIdAndSprintId(projectId, sprint.getId());
+            int created = tasks.size();
+            int completed = (int) tasks.stream().filter(t -> "done".equals(t.getStatus())).count();
+            result.add(new VelocityDTO(sprint.getName(), created, completed));
+        }
+
+        log.info("✅ [ANALYTICS] Velocity by sprint: {} sprints for user {}", result.size(), userId);
+        return result;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 5b. WORKED HOURS BY SPRINT (hours per user per sprint)
+    // ─────────────────────────────────────────────────────────────
+
+    public List<WorkedHoursDTO> getWorkedHoursBySprint(Long userId, Long projectId) {
+        log.info("⏱️ [ANALYTICS] Computing worked hours by sprint for user {}, project={}", userId, projectId);
+
+        List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
+        sprints.sort(Comparator.comparing(Sprint::getId));
+
+        List<WorkedHoursDTO> result = new ArrayList<>();
+        for (Sprint sprint : sprints) {
+            List<Task> tasks = taskRepository.findByProjectIdAndSprintId(projectId, sprint.getId());
+
+            Map<String, Integer> hoursByUser = new LinkedHashMap<>();
+            Map<String, String> userNames = new LinkedHashMap<>();
+
+            for (Task t : tasks) {
+                if (t.getWorkedHours() == null || t.getWorkedHours() == 0) continue;
+                if (t.getAssignee() == null) continue;
+                String uid = t.getAssignee().getId().toString();
+                hoursByUser.merge(uid, t.getWorkedHours(), Integer::sum);
+                userNames.put(uid, t.getAssignee().getName());
+            }
+
+            for (Map.Entry<String, Integer> entry : hoursByUser.entrySet()) {
+                result.add(new WorkedHoursDTO(sprint.getName(), userNames.get(entry.getKey()), entry.getValue()));
+            }
+        }
+
+        log.info("✅ [ANALYTICS] Worked hours by sprint: {} entries for user {}", result.size(), userId);
+        return result;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 6. TASK DISTRIBUTION BY TEAM MEMBER (percentages)
     // ─────────────────────────────────────────────────────────────
 
     public List<TaskDistributionDTO> getTaskDistribution(Long userId, Long projectId, Long sprintId) {

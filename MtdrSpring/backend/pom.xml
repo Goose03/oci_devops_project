@@ -180,6 +180,9 @@
 				<version>${project.parent.version}</version>
 				<configuration>
 					<mainClass>com.springboot.MyTodoList.MyTodoListApplication</mainClass>
+					<systemPropertyVariables>
+						<oracle.net.tns_admin>C:/Github/oci_devops_project1/MtdrSpring/backend/wallet</oracle.net.tns_admin>
+					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>

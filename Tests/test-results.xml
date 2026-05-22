@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="8" time="276.398" timestamp="2026-05-20T16:22:31.864539-06:00" hostname="malusoto"><testcase classname="tests.Login.test_Login" name="test_login_valid_credentials" time="20.137" /><testcase classname="tests.Login.test_Login" name="test_login_wrong_password" time="22.880" /><testcase classname="tests.Login.test_Login" name="test_login_wrong_email" time="22.709" /><testcase classname="tests.Login.test_Login" name="test_login_empty_fields" time="21.137" /><testcase classname="tests.Login.test_Login" name="test_login_empty_password" time="28.926" /><testcase classname="tests.WebApp.test_CreateTask" name="test_create_task_basic" time="53.682"><failure message="selenium.common.exceptions.TimeoutException: Message: &#10;Stacktrace:&#10;&#09;chromedriver!GetHandleVerifier [0x5db593+105d3]&#10;&#09;chromedriver!GetHandleVerifier [0x5db6c4+10704]&#10;&#09;chromedriver!(No symbol) [0x3e1ea0]&#10;&#09;chromedriver!(No symbol) [0x42b28a]&#10;&#09;chromedriver!(No symbol) [0x42b52b]&#10;&#09;chromedriver!(No symbol) [0x46d052]&#10;&#09;chromedriver!(No symbol) [0x44d7c4]&#10;&#09;chromedriver!(No symbol) [0x46a936]&#10;&#09;chromedriver!(No symbol) [0x44d516]&#10;&#09;chromedriver!(No symbol) [0x4208e9]&#10;&#09;chromedriver!(No symbol) [0x4216a4]&#10;&#09;chromedriver!GetHandleVerifier [0x863014+298054]&#10;&#09;chromedriver!GetHandleVerifier [0x85e603+293643]&#10;&#09;chromedriver!GetHandleVerifier [0x87ea05+2b3a45]&#10;&#09;chromedriver!GetHandleVerifier [0x5f54e8+2a528]&#10;&#09;chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]&#10;&#09;chromedriver!GetHandleVerifier [0x5e3e68+18ea8]&#10;&#09;chromedriver!GetHandleVerifier [0x5e4015+19055]&#10;&#09;chromedriver!GetHandleVerifier [0x5cd65f+269f]&#10;&#09;KERNEL32!BaseThreadInitThunk [0x75215d49+19]&#10;&#09;ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]&#10;&#09;ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]">pages\webapp\TaskFunctions.py:29: in click_new_task
+    btn = wait_for_clickable(self.driver, NEW_TASK_BUTTON, timeout=15)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+utils\wait_utils.py:18: in wait_for_clickable
+    return WebDriverWait(driver, timeout).until(
+C:\Users\pinki\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: 
+E   Stacktrace:
+E   	chromedriver!GetHandleVerifier [0x5db593+105d3]
+E   	chromedriver!GetHandleVerifier [0x5db6c4+10704]
+E   	chromedriver!(No symbol) [0x3e1ea0]
+E   	chromedriver!(No symbol) [0x42b28a]
+E   	chromedriver!(No symbol) [0x42b52b]
+E   	chromedriver!(No symbol) [0x46d052]
+E   	chromedriver!(No symbol) [0x44d7c4]
+E   	chromedriver!(No symbol) [0x46a936]
+E   	chromedriver!(No symbol) [0x44d516]
+E   	chromedriver!(No symbol) [0x4208e9]
+E   	chromedriver!(No symbol) [0x4216a4]
+E   	chromedriver!GetHandleVerifier [0x863014+298054]
+E   	chromedriver!GetHandleVerifier [0x85e603+293643]
+E   	chromedriver!GetHandleVerifier [0x87ea05+2b3a45]
+E   	chromedriver!GetHandleVerifier [0x5f54e8+2a528]
+E   	chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]
+E   	chromedriver!GetHandleVerifier [0x5e3e68+18ea8]
+E   	chromedriver!GetHandleVerifier [0x5e4015+19055]
+E   	chromedriver!GetHandleVerifier [0x5cd65f+269f]
+E   	KERNEL32!BaseThreadInitThunk [0x75215d49+19]
+E   	ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]
+E   	ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]
+
+During handling of the above exception, another exception occurred:
+tests\WebApp\test_CreateTask.py:34: in test_create_task_basic
+    task.click_new_task()
+pages\webapp\TaskFunctions.py:31: in click_new_task
+    btn = wait_for_clickable(
+utils\wait_utils.py:18: in wait_for_clickable
+    return WebDriverWait(driver, timeout).until(
+C:\Users\pinki\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: 
+E   Stacktrace:
+E   	chromedriver!GetHandleVerifier [0x5db593+105d3]
+E   	chromedriver!GetHandleVerifier [0x5db6c4+10704]
+E   	chromedriver!(No symbol) [0x3e1ea0]
+E   	chromedriver!(No symbol) [0x42b28a]
+E   	chromedriver!(No symbol) [0x42b52b]
+E   	chromedriver!(No symbol) [0x46d052]
+E   	chromedriver!(No symbol) [0x44d7c4]
+E   	chromedriver!(No symbol) [0x46a936]
+E   	chromedriver!(No symbol) [0x44d516]
+E   	chromedriver!(No symbol) [0x4208e9]
+E   	chromedriver!(No symbol) [0x4216a4]
+E   	chromedriver!GetHandleVerifier [0x863014+298054]
+E   	chromedriver!GetHandleVerifier [0x85e603+293643]
+E   	chromedriver!GetHandleVerifier [0x87ea05+2b3a45]
+E   	chromedriver!GetHandleVerifier [0x5f54e8+2a528]
+E   	chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]
+E   	chromedriver!GetHandleVerifier [0x5e3e68+18ea8]
+E   	chromedriver!GetHandleVerifier [0x5e4015+19055]
+E   	chromedriver!GetHandleVerifier [0x5cd65f+269f]
+E   	KERNEL32!BaseThreadInitThunk [0x75215d49+19]
+E   	ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]
+E   	ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]</failure></testcase><testcase classname="tests.WebApp.test_CreateTask" name="test_create_task_with_hours" time="52.860"><failure message="selenium.common.exceptions.TimeoutException: Message: &#10;Stacktrace:&#10;&#09;chromedriver!GetHandleVerifier [0x5db593+105d3]&#10;&#09;chromedriver!GetHandleVerifier [0x5db6c4+10704]&#10;&#09;chromedriver!(No symbol) [0x3e1ea0]&#10;&#09;chromedriver!(No symbol) [0x42b28a]&#10;&#09;chromedriver!(No symbol) [0x42b52b]&#10;&#09;chromedriver!(No symbol) [0x46d052]&#10;&#09;chromedriver!(No symbol) [0x44d7c4]&#10;&#09;chromedriver!(No symbol) [0x46a936]&#10;&#09;chromedriver!(No symbol) [0x44d516]&#10;&#09;chromedriver!(No symbol) [0x4208e9]&#10;&#09;chromedriver!(No symbol) [0x4216a4]&#10;&#09;chromedriver!GetHandleVerifier [0x863014+298054]&#10;&#09;chromedriver!GetHandleVerifier [0x85e603+293643]&#10;&#09;chromedriver!GetHandleVerifier [0x87ea05+2b3a45]&#10;&#09;chromedriver!GetHandleVerifier [0x5f54e8+2a528]&#10;&#09;chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]&#10;&#09;chromedriver!GetHandleVerifier [0x5e3e68+18ea8]&#10;&#09;chromedriver!GetHandleVerifier [0x5e4015+19055]&#10;&#09;chromedriver!GetHandleVerifier [0x5cd65f+269f]&#10;&#09;KERNEL32!BaseThreadInitThunk [0x75215d49+19]&#10;&#09;ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]&#10;&#09;ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]">pages\webapp\TaskFunctions.py:29: in click_new_task
+    btn = wait_for_clickable(self.driver, NEW_TASK_BUTTON, timeout=15)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+utils\wait_utils.py:18: in wait_for_clickable
+    return WebDriverWait(driver, timeout).until(
+C:\Users\pinki\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: 
+E   Stacktrace:
+E   	chromedriver!GetHandleVerifier [0x5db593+105d3]
+E   	chromedriver!GetHandleVerifier [0x5db6c4+10704]
+E   	chromedriver!(No symbol) [0x3e1ea0]
+E   	chromedriver!(No symbol) [0x42b28a]
+E   	chromedriver!(No symbol) [0x42b52b]
+E   	chromedriver!(No symbol) [0x46d052]
+E   	chromedriver!(No symbol) [0x44d7c4]
+E   	chromedriver!(No symbol) [0x46a936]
+E   	chromedriver!(No symbol) [0x44d516]
+E   	chromedriver!(No symbol) [0x4208e9]
+E   	chromedriver!(No symbol) [0x4216a4]
+E   	chromedriver!GetHandleVerifier [0x863014+298054]
+E   	chromedriver!GetHandleVerifier [0x85e603+293643]
+E   	chromedriver!GetHandleVerifier [0x87ea05+2b3a45]
+E   	chromedriver!GetHandleVerifier [0x5f54e8+2a528]
+E   	chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]
+E   	chromedriver!GetHandleVerifier [0x5e3e68+18ea8]
+E   	chromedriver!GetHandleVerifier [0x5e4015+19055]
+E   	chromedriver!GetHandleVerifier [0x5cd65f+269f]
+E   	KERNEL32!BaseThreadInitThunk [0x75215d49+19]
+E   	ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]
+E   	ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]
+
+During handling of the above exception, another exception occurred:
+tests\WebApp\test_CreateTask.py:52: in test_create_task_with_hours
+    task.click_new_task()
+pages\webapp\TaskFunctions.py:31: in click_new_task
+    btn = wait_for_clickable(
+utils\wait_utils.py:18: in wait_for_clickable
+    return WebDriverWait(driver, timeout).until(
+C:\Users\pinki\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: 
+E   Stacktrace:
+E   	chromedriver!GetHandleVerifier [0x5db593+105d3]
+E   	chromedriver!GetHandleVerifier [0x5db6c4+10704]
+E   	chromedriver!(No symbol) [0x3e1ea0]
+E   	chromedriver!(No symbol) [0x42b28a]
+E   	chromedriver!(No symbol) [0x42b52b]
+E   	chromedriver!(No symbol) [0x46d052]
+E   	chromedriver!(No symbol) [0x44d7c4]
+E   	chromedriver!(No symbol) [0x46a936]
+E   	chromedriver!(No symbol) [0x44d516]
+E   	chromedriver!(No symbol) [0x4208e9]
+E   	chromedriver!(No symbol) [0x4216a4]
+E   	chromedriver!GetHandleVerifier [0x863014+298054]
+E   	chromedriver!GetHandleVerifier [0x85e603+293643]
+E   	chromedriver!GetHandleVerifier [0x87ea05+2b3a45]
+E   	chromedriver!GetHandleVerifier [0x5f54e8+2a528]
+E   	chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]
+E   	chromedriver!GetHandleVerifier [0x5e3e68+18ea8]
+E   	chromedriver!GetHandleVerifier [0x5e4015+19055]
+E   	chromedriver!GetHandleVerifier [0x5cd65f+269f]
+E   	KERNEL32!BaseThreadInitThunk [0x75215d49+19]
+E   	ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]
+E   	ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]</failure></testcase><testcase classname="tests.WebApp.test_CreateTask" name="test_create_task_empty_title" time="53.167"><failure message="selenium.common.exceptions.TimeoutException: Message: &#10;Stacktrace:&#10;&#09;chromedriver!GetHandleVerifier [0x5db593+105d3]&#10;&#09;chromedriver!GetHandleVerifier [0x5db6c4+10704]&#10;&#09;chromedriver!(No symbol) [0x3e1ea0]&#10;&#09;chromedriver!(No symbol) [0x42b28a]&#10;&#09;chromedriver!(No symbol) [0x42b52b]&#10;&#09;chromedriver!(No symbol) [0x46d052]&#10;&#09;chromedriver!(No symbol) [0x44d7c4]&#10;&#09;chromedriver!(No symbol) [0x46a936]&#10;&#09;chromedriver!(No symbol) [0x44d516]&#10;&#09;chromedriver!(No symbol) [0x4208e9]&#10;&#09;chromedriver!(No symbol) [0x4216a4]&#10;&#09;chromedriver!GetHandleVerifier [0x863014+298054]&#10;&#09;chromedriver!GetHandleVerifier [0x85e603+293643]&#10;&#09;chromedriver!GetHandleVerifier [0x87ea05+2b3a45]&#10;&#09;chromedriver!GetHandleVerifier [0x5f54e8+2a528]&#10;&#09;chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]&#10;&#09;chromedriver!GetHandleVerifier [0x5e3e68+18ea8]&#10;&#09;chromedriver!GetHandleVerifier [0x5e4015+19055]&#10;&#09;chromedriver!GetHandleVerifier [0x5cd65f+269f]&#10;&#09;KERNEL32!BaseThreadInitThunk [0x75215d49+19]&#10;&#09;ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]&#10;&#09;ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]">pages\webapp\TaskFunctions.py:29: in click_new_task
+    btn = wait_for_clickable(self.driver, NEW_TASK_BUTTON, timeout=15)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+utils\wait_utils.py:18: in wait_for_clickable
+    return WebDriverWait(driver, timeout).until(
+C:\Users\pinki\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: 
+E   Stacktrace:
+E   	chromedriver!GetHandleVerifier [0x5db593+105d3]
+E   	chromedriver!GetHandleVerifier [0x5db6c4+10704]
+E   	chromedriver!(No symbol) [0x3e1ea0]
+E   	chromedriver!(No symbol) [0x42b28a]
+E   	chromedriver!(No symbol) [0x42b52b]
+E   	chromedriver!(No symbol) [0x46d052]
+E   	chromedriver!(No symbol) [0x44d7c4]
+E   	chromedriver!(No symbol) [0x46a936]
+E   	chromedriver!(No symbol) [0x44d516]
+E   	chromedriver!(No symbol) [0x4208e9]
+E   	chromedriver!(No symbol) [0x4216a4]
+E   	chromedriver!GetHandleVerifier [0x863014+298054]
+E   	chromedriver!GetHandleVerifier [0x85e603+293643]
+E   	chromedriver!GetHandleVerifier [0x87ea05+2b3a45]
+E   	chromedriver!GetHandleVerifier [0x5f54e8+2a528]
+E   	chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]
+E   	chromedriver!GetHandleVerifier [0x5e3e68+18ea8]
+E   	chromedriver!GetHandleVerifier [0x5e4015+19055]
+E   	chromedriver!GetHandleVerifier [0x5cd65f+269f]
+E   	KERNEL32!BaseThreadInitThunk [0x75215d49+19]
+E   	ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]
+E   	ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]
+
+During handling of the above exception, another exception occurred:
+tests\WebApp\test_CreateTask.py:69: in test_create_task_empty_title
+    task.click_new_task()
+pages\webapp\TaskFunctions.py:31: in click_new_task
+    btn = wait_for_clickable(
+utils\wait_utils.py:18: in wait_for_clickable
+    return WebDriverWait(driver, timeout).until(
+C:\Users\pinki\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: 
+E   Stacktrace:
+E   	chromedriver!GetHandleVerifier [0x5db593+105d3]
+E   	chromedriver!GetHandleVerifier [0x5db6c4+10704]
+E   	chromedriver!(No symbol) [0x3e1ea0]
+E   	chromedriver!(No symbol) [0x42b28a]
+E   	chromedriver!(No symbol) [0x42b52b]
+E   	chromedriver!(No symbol) [0x46d052]
+E   	chromedriver!(No symbol) [0x44d7c4]
+E   	chromedriver!(No symbol) [0x46a936]
+E   	chromedriver!(No symbol) [0x44d516]
+E   	chromedriver!(No symbol) [0x4208e9]
+E   	chromedriver!(No symbol) [0x4216a4]
+E   	chromedriver!GetHandleVerifier [0x863014+298054]
+E   	chromedriver!GetHandleVerifier [0x85e603+293643]
+E   	chromedriver!GetHandleVerifier [0x87ea05+2b3a45]
+E   	chromedriver!GetHandleVerifier [0x5f54e8+2a528]
+E   	chromedriver!GetHandleVerifier [0x5fcd1d+31d5d]
+E   	chromedriver!GetHandleVerifier [0x5e3e68+18ea8]
+E   	chromedriver!GetHandleVerifier [0x5e4015+19055]
+E   	chromedriver!GetHandleVerifier [0x5cd65f+269f]
+E   	KERNEL32!BaseThreadInitThunk [0x75215d49+19]
+E   	ntdll!RtlInitializeExceptionChain [0x7779d83b+6b]
+E   	ntdll!RtlGetAppContainerNamedObjectPath [0x7779d7c1+231]</failure></testcase></testsuite></testsuites>

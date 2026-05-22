@@ -111,6 +111,44 @@ public class AnalyticsController {
     }
 
     /**
+     * GET /api/analytics/velocity-by-sprint?projectId=1
+     * Returns tasks created vs completed grouped by sprint (not by week).
+     */
+    @GetMapping("/velocity-by-sprint")
+    public ResponseEntity<List<VelocityDTO>> getVelocityBySprint(
+            Authentication auth,
+            @RequestParam Long projectId) {
+        Long userId = (Long) auth.getPrincipal();
+        log.info("🚀 [REQUEST] GET /analytics/velocity-by-sprint - User: {}, projectId: {}", userId, projectId);
+        try {
+            List<VelocityDTO> result = analyticsService.getVelocityBySprint(userId, projectId);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            log.error("❌ [ERROR] GET /analytics/velocity-by-sprint - Failed for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * GET /api/analytics/worked-hours-by-sprint?projectId=1
+     * Returns worked hours per user grouped by sprint (not by week).
+     */
+    @GetMapping("/worked-hours-by-sprint")
+    public ResponseEntity<List<WorkedHoursDTO>> getWorkedHoursBySprint(
+            Authentication auth,
+            @RequestParam Long projectId) {
+        Long userId = (Long) auth.getPrincipal();
+        log.info("🚀 [REQUEST] GET /analytics/worked-hours-by-sprint - User: {}, projectId: {}", userId, projectId);
+        try {
+            List<WorkedHoursDTO> result = analyticsService.getWorkedHoursBySprint(userId, projectId);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            log.error("❌ [ERROR] GET /analytics/worked-hours-by-sprint - Failed for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * GET /api/analytics/task-distribution
      * Returns task count per team member as percentages.
      */

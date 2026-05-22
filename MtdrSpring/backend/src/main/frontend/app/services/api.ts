@@ -382,6 +382,16 @@ export const analyticsApi = {
     return handleResponse<TaskDistributionPoint[]>(res);
   },
 
+  getVelocityBySprint: async (projectId: string): Promise<VelocityPoint[]> => {
+    const res = await fetch(`${API_BASE_URL}/analytics/velocity-by-sprint?projectId=${projectId}`, { headers: authHeaders() });
+    return handleResponse<VelocityPoint[]>(res);
+  },
+
+  getWorkedHoursBySprint: async (projectId: string): Promise<WorkedHoursPoint[]> => {
+    const res = await fetch(`${API_BASE_URL}/analytics/worked-hours-by-sprint?projectId=${projectId}`, { headers: authHeaders() });
+    return handleResponse<WorkedHoursPoint[]>(res);
+  },
+
   /** GET /api/analytics/kpis?projectId=X&sprintId=Y (sprintId optional) */
   getSprintKpis: async (projectId: string, sprintId?: string): Promise<SprintKpiPoint> => {
     const params = new URLSearchParams({ projectId });
