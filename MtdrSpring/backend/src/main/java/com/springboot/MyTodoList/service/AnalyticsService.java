@@ -248,7 +248,7 @@ public class AnalyticsService {
         log.info("🚀 [ANALYTICS] Computing velocity by sprint for user {}, project={}", userId, projectId);
 
         List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
-        sprints.sort(Comparator.comparing(Sprint::getId));
+        sprints.sort(Comparator.comparing(Sprint::getName));
 
         List<VelocityDTO> result = new ArrayList<>();
         for (Sprint sprint : sprints) {
@@ -270,7 +270,7 @@ public class AnalyticsService {
         log.info("⏱️ [ANALYTICS] Computing worked hours by sprint for user {}, project={}", userId, projectId);
 
         List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
-        sprints.sort(Comparator.comparing(Sprint::getId));
+        sprints.sort(Comparator.comparing(Sprint::getName));
 
         List<WorkedHoursDTO> result = new ArrayList<>();
         for (Sprint sprint : sprints) {

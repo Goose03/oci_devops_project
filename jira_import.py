@@ -84,6 +84,23 @@ SPRINT_MAP: dict[str, int] = {
     "Sprint-3": 5,
 }
 
+# Sprint assignment by date — closing date of each sprint (inclusive)
+SPRINT_DATE_RANGES = [
+    (datetime(2026, 3, 13, 23, 59, 59, tzinfo=timezone.utc), 6),   # Sprint-0
+    (datetime(2026, 4, 17, 23, 59, 59, tzinfo=timezone.utc), 3),   # Sprint-1
+    (datetime(2026, 4, 20, 23, 59, 59, tzinfo=timezone.utc), 4),   # Sprint-2
+    (datetime(2026, 5, 22, 23, 59, 59, tzinfo=timezone.utc), 5),   # Sprint-3
+]
+
+def sprint_id_from_date(dt: datetime) -> str:
+    """Return DB sprint_id based on task created_at date."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    for end_date, sprint_id in SPRINT_DATE_RANGES:
+        if dt <= end_date:
+            return str(sprint_id)
+    return str(SPRINT_DATE_RANGES[-1][1])  # fallback to last sprint
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def parse_rss_date(date_str: str) -> datetime:
@@ -138,17 +155,12 @@ def load_items(path: str) -> list[ET.Element]:
     return channel.findall("item")
 
 def get_sprint_id(item: ET.Element) -> str:
-    """Find the Sprint customfield label and map it to a DB sprint ID."""
-    for cf in item.findall(".//customfield"):
-        name_el = cf.find("customfieldname")
-        if name_el is not None and (name_el.text or "").strip() == "Sprint":
-            label_el = cf.find(".//label")
-            if label_el is not None:
-                label = (label_el.text or "").strip()
-                sprint_id = SPRINT_MAP.get(label)
-                if sprint_id is not None:
-                    return str(sprint_id)
-    return "NULL"
+    """Assign sprint based on task created_at date, ignoring Jira labels."""
+    created_raw = text_of(item, "created")
+    if not created_raw:
+        return "NULL"
+    created_dt = parse_rss_date(created_raw)
+    return sprint_id_from_date(created_dt)
 
 def build_insert(item: ET.Element) -> tuple[str, list[str]]:
     warnings: list[str] = []

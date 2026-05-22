@@ -657,57 +657,35 @@ formatter={(val: number, name: string) => [val, name]}                  />
           </CardContent>
         </Card>
 
-        {/* ④ Task Distribution by Team Member */}
+        {/* ④ Tasks per Sprint */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="w-4 h-4 text-[#30c2b7]" />
-              Task Distribution by Member
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">% of total tasks</Badge>
+              <BarChart3 className="w-4 h-4 text-[#30c2b7]" />
+              Tasks per Sprint
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Total · Completed</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
               <ChartSkeleton />
-            ) : distributionData.length === 0 ? (
-              <ChartEmpty message="No tasks assigned yet. Assign tasks to team members to see the distribution." />
+            ) : velocityBySprintData.length === 0 ? (
+              <ChartEmpty message="No sprint data yet. Select a project with sprints to see tasks per sprint." />
             ) : (
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="60%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={distributionData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      dataKey="taskCount"
-                      nameKey="userName"
-                      labelLine={false}
-                      label={renderPieLabel}
-                    >
-                      {distributionData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ borderRadius: 8, fontSize: 12 }}
-                      formatter={(val: number, _: string, props: any) => [
-                        `${val} tasks (${props.payload.percentage}%)`,
-                        props.payload.userName,
-                      ]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-col gap-2 overflow-auto max-h-52">
-                  {distributionData.map((d, i) => (
-                    <div key={d.userId} className="flex items-center gap-2 text-sm">
-                      <span className="w-3 h-3 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                      <span className="truncate max-w-24 dark:text-gray-200" title={d.userName}>{d.userName}</span>
-                      <span className="ml-auto font-semibold dark:text-white whitespace-nowrap">{d.percentage}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={velocityBySprintData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                    formatter={(val: number, name: string) => [val, name]}
+                  />
+                  <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="created" name="Total Tasks" fill="#6366f1" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="completed" name="Completed" fill="#30c2b7" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
