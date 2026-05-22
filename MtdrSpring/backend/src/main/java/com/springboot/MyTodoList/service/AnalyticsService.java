@@ -263,6 +263,39 @@ public class AnalyticsService {
     }
 
     // ─────────────────────────────────────────────────────────────
+    // 5c. TASK COUNT BY SPRINT PER MEMBER
+    // ─────────────────────────────────────────────────────────────
+
+    public List<WorkedHoursDTO> getTaskCountBySprint(Long userId, Long projectId) {
+        log.info("📋 [ANALYTICS] Computing task count by sprint per member for user {}, project={}", userId, projectId);
+
+        List<Sprint> sprints = sprintRepository.findByProjectId(projectId);
+        sprints.sort(Comparator.comparing(Sprint::getName));
+
+        List<WorkedHoursDTO> result = new ArrayList<>();
+        for (Sprint sprint : sprints) {
+            List<Task> tasks = taskRepository.findByProjectIdAndSprintId(projectId, sprint.getId());
+
+            Map<String, Integer> countByUser = new LinkedHashMap<>();
+            Map<String, String> userNames = new LinkedHashMap<>();
+
+            for (Task t : tasks) {
+                if (t.getAssignee() == null) continue;
+                String uid = t.getAssignee().getId().toString();
+                countByUser.merge(uid, 1, Integer::sum);
+                userNames.put(uid, t.getAssignee().getName());
+            }
+
+            for (Map.Entry<String, Integer> entry : countByUser.entrySet()) {
+                result.add(new WorkedHoursDTO(sprint.getName(), userNames.get(entry.getKey()), entry.getValue()));
+            }
+        }
+
+        log.info("✅ [ANALYTICS] Task count by sprint: {} entries for user {}", result.size(), userId);
+        return result;
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // 5b. WORKED HOURS BY SPRINT (hours per user per sprint)
     // ─────────────────────────────────────────────────────────────
 

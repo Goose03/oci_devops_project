@@ -144,6 +144,7 @@ export function Dashboard({
   const [distributionData, setDistributionData] = useState<TaskDistributionPoint[]>([]);
   const [velocityBySprintData, setVelocityBySprintData] = useState<VelocityPoint[]>([]);
   const [workedHoursBySprintData, setWorkedHoursBySprintData] = useState<WorkedHoursPoint[]>([]);
+  const [tasksBySprintData, setTasksBySprintData] = useState<WorkedHoursPoint[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
@@ -173,8 +174,9 @@ export function Dashboard({
       ? [
           analyticsApi.getVelocityBySprint(selectedProjectId),
           analyticsApi.getWorkedHoursBySprint(selectedProjectId),
+          analyticsApi.getTasksBySprint(selectedProjectId),
         ]
-      : [Promise.resolve([]), Promise.resolve([])];
+      : [Promise.resolve([]), Promise.resolve([]), Promise.resolve([])];
 
     Promise.all([
       analyticsApi.getVelocity(12, pid, sid),
@@ -183,13 +185,14 @@ export function Dashboard({
       analyticsApi.getTaskDistribution(pid, sid),
       ...sprintCalls,
     ])
-      .then(([vel, pri, wh, dist, velSprint, whSprint]) => {
+      .then(([vel, pri, wh, dist, velSprint, whSprint, tasksSprint]) => {
         setVelocityData(vel as VelocityPoint[]);
         setPriorityData(pri as PriorityPoint[]);
         setWorkedHoursData(wh as WorkedHoursPoint[]);
         setDistributionData(dist as TaskDistributionPoint[]);
         setVelocityBySprintData(velSprint as VelocityPoint[]);
         setWorkedHoursBySprintData(whSprint as WorkedHoursPoint[]);
+        setTasksBySprintData(tasksSprint as WorkedHoursPoint[]);
       })
       .catch((err) => {
         console.error('Analytics fetch failed:', err);
@@ -246,6 +249,20 @@ export function Dashboard({
     });
   })();
   const workedHoursUsers = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
+
+  const tasksBySprintChartData = (() => {
+    const sprintNames = Array.from(new Set(tasksBySprintData.map((d) => d.week)));
+    const members = Array.from(new Set(tasksBySprintData.map((d) => d.userName)));
+    return sprintNames.map((s) => {
+      const row: Record<string, string | number> = { sprint: s };
+      members.forEach((u) => {
+        const entry = tasksBySprintData.find((d) => d.week === s && d.userName === u);
+        row[u] = entry ? entry.hours : 0;
+      });
+      return row;
+    });
+  })();
+  const tasksBySprintMembers = Array.from(new Set(tasksBySprintData.map((d) => d.userName)));
 
   const velocityChartData = velocityBySprintData.length > 0
     ? velocityBySprintData.map((d) => ({ ...d, week: d.week }))
@@ -657,33 +674,40 @@ formatter={(val: number, name: string) => [val, name]}                  />
           </CardContent>
         </Card>
 
-        {/* ④ Tasks per Sprint */}
+        {/* ④ Tasks per Member per Sprint */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="w-4 h-4 text-[#30c2b7]" />
-              Tasks per Sprint
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Total · Completed</Badge>
+              <Users className="w-4 h-4 text-[#30c2b7]" />
+              Tasks per Member per Sprint
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Stacked by member</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
               <ChartSkeleton />
-            ) : velocityBySprintData.length === 0 ? (
-              <ChartEmpty message="No sprint data yet. Select a project with sprints to see tasks per sprint." />
+            ) : tasksBySprintChartData.length === 0 ? (
+              <ChartEmpty message="No sprint data yet. Select a project with assigned tasks to see the breakdown." />
             ) : (
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={velocityBySprintData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                <BarChart data={tasksBySprintChartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="sprint" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ borderRadius: 8, fontSize: 12 }}
-                    formatter={(val: number, name: string) => [val, name]}
+                    formatter={(val: number, name: string) => [val + ' tasks', name]}
                   />
                   <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="created" name="Total Tasks" fill="#6366f1" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="completed" name="Completed" fill="#30c2b7" radius={[3, 3, 0, 0]} />
+                  {tasksBySprintMembers.map((name, i) => (
+                    <Bar
+                      key={name}
+                      dataKey={name}
+                      stackId="members"
+                      fill={COLORS[i % COLORS.length]}
+                      radius={i === tasksBySprintMembers.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             )}

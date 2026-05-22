@@ -149,6 +149,25 @@ public class AnalyticsController {
     }
 
     /**
+     * GET /api/analytics/tasks-by-sprint?projectId=1
+     * Returns task count per member per sprint.
+     */
+    @GetMapping("/tasks-by-sprint")
+    public ResponseEntity<List<WorkedHoursDTO>> getTaskCountBySprint(
+            Authentication auth,
+            @RequestParam Long projectId) {
+        Long userId = (Long) auth.getPrincipal();
+        log.info("🚀 [REQUEST] GET /analytics/tasks-by-sprint - User: {}, projectId: {}", userId, projectId);
+        try {
+            List<WorkedHoursDTO> result = analyticsService.getTaskCountBySprint(userId, projectId);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            log.error("❌ [ERROR] GET /analytics/tasks-by-sprint - Failed for user {}: {}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * GET /api/analytics/task-distribution
      * Returns task count per team member as percentages.
      */
