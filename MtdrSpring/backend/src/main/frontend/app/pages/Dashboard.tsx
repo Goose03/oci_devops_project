@@ -703,9 +703,8 @@ formatter={(val: number, name: string) => [val, name]}                  />
                     <Bar
                       key={name}
                       dataKey={name}
-                      stackId="members"
                       fill={COLORS[i % COLORS.length]}
-                      radius={i === tasksBySprintMembers.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]}
+                      radius={[3, 3, 0, 0]}
                     />
                   ))}
                 </BarChart>
