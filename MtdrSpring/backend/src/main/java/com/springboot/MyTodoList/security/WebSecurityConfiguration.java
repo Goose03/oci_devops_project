@@ -45,16 +45,15 @@ public class WebSecurityConfiguration {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Public API endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/ai/**").permitAll()
-                // Static frontend resources (React app)
-                .requestMatchers("/", "/index.html", "/assets/**", "/*.js", "/*.css",
-                        "/*.ico", "/*.png", "/*.svg", "/static/**",
-                        "/login", "/register", "/forgot-password").permitAll()
+                // All other /api/** routes require JWT
+                .requestMatchers("/api/**").authenticated()
                 // Swagger UI
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                // All other endpoints require a valid JWT
-                .anyRequest().authenticated()
+                // All SPA/static routes are public — React handles auth client-side via localStorage JWT
+                .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
