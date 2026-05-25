@@ -98,12 +98,12 @@ jobs:
       # ── 8. PUBLISH JUNIT REPORT IN GITHUB UI ─────────────────────────────────
       - name: Publish test report
         if: always()
-        uses: dorny/tests-reporter@v1
+        uses: mikepenz/action-junit-report@v4
         with:
-          name: Selenium Results
-          path: Tests/test-results.xml
-          reporter: java-junit
-          fail-on-error: false
+          report_paths: Tests/test-results.xml
+          check_name: Selenium Results
+          fail_on_failure: false
+          require_tests: false
 
       # ── 9. CREATE JIRA TICKETS ON FAILURE ────────────────────────────────────
       - name: Create Jira tickets for failed tests
