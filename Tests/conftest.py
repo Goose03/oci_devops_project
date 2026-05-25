@@ -9,18 +9,25 @@ from webdriver_manager.chrome import ChromeDriverManager
 def _build_chrome_options(headless=False):
     options = webdriver.ChromeOptions()
     if headless:
+        # CI mode — no user-data-dir to avoid profile locking between instances
         options.add_argument("--headless=new")
         options.add_argument("--window-size=1920,1080")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-background-networking")
+        options.add_argument("--remote-debugging-port=0")
     else:
+        # Local mode — isolated profile to avoid conflict with open Chrome
         options.add_argument("--start-maximized")
-
-    # Always use a dedicated temp profile to avoid conflicts with an open Chrome
-    profile_dir = os.path.join(tempfile.gettempdir(), "chrome-selenium-profile")
-    options.add_argument(f"--user-data-dir={profile_dir}")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--remote-debugging-port=0")
+        profile_dir = os.path.join(tempfile.gettempdir(), "chrome-selenium-profile")
+        options.add_argument(f"--user-data-dir={profile_dir}")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--remote-debugging-port=0")
     return options
 
 
