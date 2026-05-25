@@ -1,0 +1,145 @@
+name: Selenium Test Suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+# Cancel in-progress runs on the same branch when a new push arrives
+concurrency:
+  group: selenium-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selenium:
+    name: Run Selenium Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      APP_URL:          http://140.84.190.22
+      VALID_EMAIL:      ${{ secrets.VALID_EMAIL }}
+      VALID_PASSWORD:   ${{ secrets.VALID_PASSWORD }}
+      DASHBOARD_URL:    http://140.84.190.22
+      DASHBOARD_EMAIL:  ${{ secrets.VALID_EMAIL }}
+      DASHBOARD_PASS:   ${{ secrets.VALID_PASSWORD }}
+      JIRA_URL:         https://tec-team-kretou7k.atlassian.net
+      JIRA_EMAIL:       ${{ secrets.JIRA_EMAIL }}
+      JIRA_TOKEN:       ${{ secrets.JIRA_TOKEN }}
+      JIRA_PROJECT:     SWE
+      HEADLESS:         "true"
+
+    steps:
+
+      # ── 1. CHECKOUT ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. PYTHON SETUP ───────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: Tests/requirements.txt
+
+      # ── 3. INSTALL CHROME ────────────────────────────────────────────────────
+      - name: Install Google Chrome
+        run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub \
+            | sudo gpg --dearmor -o /usr/share/keyrings/googlechrome.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome.gpg] \
+            http://dl.google.com/linux/chrome/deb/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update -q
+          sudo apt-get install -y google-chrome-stable
+          google-chrome --version
+
+      # ── 4. INSTALL PYTHON DEPENDENCIES ───────────────────────────────────────
+      - name: Install Python dependencies
+        working-directory: Tests
+        run: pip install -r requirements.txt
+
+      # ── 5. VERIFY APP IS REACHABLE ────────────────────────────────────────────
+      - name: Verify OCI app is reachable
+        run: |
+          echo "Checking http://140.84.190.22 ..."
+          curl -sSf --max-time 15 http://140.84.190.22 > /dev/null \
+            && echo "✅ App is reachable" \
+            || (echo "❌ App is not reachable — aborting" && exit 1)
+
+      # ── 6. RUN SELENIUM TESTS ─────────────────────────────────────────────────
+      - name: Run Selenium tests
+        working-directory: Tests
+        run: |
+          python -m pytest \
+            tests/Login \
+            tests/WebApp \
+            tests/Dashboard \
+            -v \
+            --tb=short \
+            --junitxml=test-results.xml \
+            2>&1 | tee test-output.txt
+        # Exit code is preserved — step fails if any test fails
+
+      # ── 7. UPLOAD TEST EVIDENCE (always, even on failure) ────────────────────
+      - name: Upload test results (XML + log)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence-${{ github.run_number }}-${{ github.sha }}
+          path: |
+            Tests/test-results.xml
+            Tests/test-output.txt
+          retention-days: 90  # kept 90 days for grading/auditing
+
+      # ── 8. PUBLISH JUNIT REPORT IN GITHUB UI ─────────────────────────────────
+      - name: Publish test report
+        if: always()
+        uses: dorny/tests-reporter@v1
+        with:
+          name: Selenium Results
+          path: Tests/test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      # ── 9. CREATE JIRA TICKETS ON FAILURE ────────────────────────────────────
+      - name: Create Jira tickets for failed tests
+        if: failure()
+        working-directory: Tests
+        run: python utils/create_jira_ticket.py test-results.xml
+
+      # ── 10. SUCCESS SUMMARY ───────────────────────────────────────────────────
+      - name: Write success summary
+        if: success()
+        run: |
+          echo "## ✅ All Selenium Tests Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Run | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| App URL | http://140.84.190.22 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[📊 Download test evidence](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
+      # ── 11. FAILURE SUMMARY ───────────────────────────────────────────────────
+      - name: Write failure summary
+        if: failure()
+        run: |
+          echo "## ❌ Selenium Tests FAILED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Run | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Jira tickets have been created automatically for each failed test." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[📋 View full log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
