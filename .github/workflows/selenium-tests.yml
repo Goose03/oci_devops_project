@@ -106,6 +106,13 @@ jobs:
           require_tests: false
 
       # ── 9. CREATE JIRA TICKETS ON FAILURE ────────────────────────────────────
+      - name: Debug — print test-results.xml
+        if: failure()
+        working-directory: Tests
+        run: |
+          echo "=== test-results.xml content ==="
+          cat test-results.xml || echo "FILE NOT FOUND"
+
       - name: Create Jira tickets for failed tests
         if: failure()
         working-directory: Tests

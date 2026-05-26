@@ -145,7 +145,11 @@ def parse_and_report(xml_file: str) -> int:
     failed = 0
 
     for testcase in root.iter("testcase"):
-        problem = testcase.find("failure") or testcase.find("error")
+        # Use explicit None check — ElementTree elements with no child elements
+        # are falsy, so 'find() or find()' silently skips real failures.
+        problem = testcase.find("failure")
+        if problem is None:
+            problem = testcase.find("error")
         if problem is None:
             continue
 
