@@ -28,10 +28,12 @@ except ImportError:
 
 # ─── Configuration (override via env vars) ────────────────────────────────────
 
-JIRA_URL     = os.environ.get("JIRA_URL",     "https://tec-team-kretou7k.atlassian.net")
-JIRA_EMAIL   = os.environ.get("JIRA_EMAIL",   "A00228158@tec.mx")
-JIRA_TOKEN   = os.environ.get("JIRA_TOKEN",   "")
-JIRA_PROJECT = os.environ.get("JIRA_PROJECT", "SWE")
+JIRA_URL      = os.environ.get("JIRA_URL",      "https://tec-team-kretou7k.atlassian.net")
+JIRA_EMAIL    = os.environ.get("JIRA_EMAIL",    "A00228158@tec.mx")
+JIRA_TOKEN    = os.environ.get("JIRA_TOKEN",    "")
+JIRA_PROJECT  = os.environ.get("JIRA_PROJECT",  "SWE")
+GH_RUN_URL    = os.environ.get("GH_RUN_URL",    "")
+GH_RUN_NUMBER = os.environ.get("GH_RUN_NUMBER", "")
 
 
 # ─── JIRA REST API ────────────────────────────────────────────────────────────
@@ -53,11 +55,25 @@ def create_ticket(test_name: str, classname: str, error_message: str) -> None:
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     summary   = f"[Selenium] FAILED: {test_name}"
 
+    run_info = f"GitHub Actions Run #{GH_RUN_NUMBER}" if GH_RUN_NUMBER else "Local run"
+    run_link_content = []
+    if GH_RUN_URL:
+        run_link_content = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "GitHub Actions run: "},
+                    {"type": "text", "text": GH_RUN_URL,
+                     "marks": [{"type": "link", "attrs": {"href": GH_RUN_URL}}]},
+                ],
+            }
+        ]
+
     payload = {
         "fields": {
-            "project":     {"key": JIRA_PROJECT},
-            "summary":     summary,
-            "issuetype":   {"name": "Bug"},
+            "project":   {"key": JIRA_PROJECT},
+            "summary":   summary,
+            "issuetype": {"name": "Task"},  # Jira Work Management uses Task, not Bug
             "description": {
                 "type":    "doc",
                 "version": 1,
@@ -65,7 +81,8 @@ def create_ticket(test_name: str, classname: str, error_message: str) -> None:
                     {
                         "type": "paragraph",
                         "content": [
-                            {"type": "text", "text": f"Automated Selenium test failed at {timestamp}",
+                            {"type": "text",
+                             "text": f"Selenium test failed — {run_info} — {timestamp}",
                              "marks": [{"type": "strong"}]},
                         ],
                     },
@@ -85,6 +102,7 @@ def create_ticket(test_name: str, classname: str, error_message: str) -> None:
                              "marks": [{"type": "code"}]},
                         ],
                     },
+                    *run_link_content,
                     {
                         "type": "heading",
                         "attrs": {"level": 3},
@@ -99,6 +117,7 @@ def create_ticket(test_name: str, classname: str, error_message: str) -> None:
         }
     }
 
+    print(f"  → Sending to JIRA project {JIRA_PROJECT} as Task...")
     response = requests.post(
         f"{JIRA_URL}/rest/api/3/issue",
         headers=_auth_header(),
@@ -110,7 +129,7 @@ def create_ticket(test_name: str, classname: str, error_message: str) -> None:
         key = response.json().get("key", "?")
         print(f"  ✅ Created {key}: {summary}")
     else:
-        print(f"  ❌ JIRA API error {response.status_code}: {response.text[:300]}")
+        print(f"  ❌ JIRA API error {response.status_code}: {response.text[:500]}")
 
 
 # ─── XML Parser ───────────────────────────────────────────────────────────────
