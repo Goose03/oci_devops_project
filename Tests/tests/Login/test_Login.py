@@ -29,7 +29,7 @@ def test_login_wrong_password(driver):
     """TC-LOGIN-02: Login falla con contraseña incorrecta."""
     login = Login(driver)
     login.open(LOGIN_URL)
-    login.login(VALID_EMAIL, "wrong")
+    login.login(VALID_EMAIL, "123")
 
     assert not login.is_logged_in(timeout=4), (
         "❌ No debe loguearse con contraseña incorrecta."
