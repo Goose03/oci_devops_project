@@ -17,7 +17,7 @@ def test_login_valid_credentials(driver):
     """TC-LOGIN-01: Login con credenciales correctas."""
     login = Login(driver)
     login.open(LOGIN_URL)
-    login.login(VALID_EMAIL, VALID_PASSWORD)
+    login.login(VALID_EMAIL, "345")
 
     assert "dashboard" in login.current_url() or login.is_logged_in(), (
         f"❌ Expected dashboard. URL: {login.current_url()}"
@@ -29,7 +29,7 @@ def test_login_wrong_password(driver):
     """TC-LOGIN-02: Login falla con contraseña incorrecta."""
     login = Login(driver)
     login.open(LOGIN_URL)
-    login.login(VALID_EMAIL, "123")
+    login.login(VALID_EMAIL, "wrong")
 
     assert not login.is_logged_in(timeout=4), (
         "❌ No debe loguearse con contraseña incorrecta."
