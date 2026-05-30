@@ -1,0 +1,647 @@
+{
+  "configuration" : { },
+  "description" : "Description",
+  "documentation" : { },
+  "id" : 0,
+  "model" : {
+    "deploymentNodes" : [ {
+      "children" : [ {
+        "containerInstances" : [ {
+          "containerId" : "5",
+          "environment" : "Production",
+          "id" : "31",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "webAppInstance"
+          },
+          "relationships" : [ {
+            "description" : "HTTPS",
+            "destinationId" : "32",
+            "id" : "33",
+            "linkedRelationshipId" : "23",
+            "sourceId" : "31"
+          } ],
+          "tags" : "Container Instance"
+        }, {
+          "containerId" : "6",
+          "environment" : "Production",
+          "id" : "32",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "taskApiInstance"
+          },
+          "relationships" : [ {
+            "description" : "Uses cache",
+            "destinationId" : "37",
+            "id" : "38",
+            "linkedRelationshipId" : "27",
+            "sourceId" : "32"
+          }, {
+            "description" : "Reads/Writes",
+            "destinationId" : "40",
+            "id" : "41",
+            "linkedRelationshipId" : "28",
+            "sourceId" : "32"
+          } ],
+          "tags" : "Container Instance"
+        }, {
+          "containerId" : "17",
+          "environment" : "Production",
+          "id" : "34",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "telegramBotInstance"
+          },
+          "relationships" : [ {
+            "description" : "Calls API",
+            "destinationId" : "32",
+            "id" : "35",
+            "linkedRelationshipId" : "26",
+            "sourceId" : "34"
+          } ],
+          "tags" : "Container Instance"
+        } ],
+        "environment" : "Production",
+        "id" : "30",
+        "instances" : "1",
+        "name" : "Application Server",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cf55b586-1fcc-4631-a4d7-f4e53cbe5613"
+        },
+        "tags" : "Element,Deployment Node"
+      }, {
+        "containerInstances" : [ {
+          "containerId" : "18",
+          "environment" : "Production",
+          "id" : "37",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "redisInstance"
+          },
+          "tags" : "Container Instance"
+        } ],
+        "environment" : "Production",
+        "id" : "36",
+        "instances" : "1",
+        "name" : "Cache Server",
+        "properties" : {
+          "structurizr.dsl.identifier" : "f7fc055e-0443-466a-b7b0-429134e11a99"
+        },
+        "tags" : "Element,Deployment Node"
+      }, {
+        "containerInstances" : [ {
+          "containerId" : "19",
+          "environment" : "Production",
+          "id" : "40",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "databaseInstance"
+          },
+          "tags" : "Container Instance"
+        } ],
+        "environment" : "Production",
+        "id" : "39",
+        "instances" : "1",
+        "name" : "Database Server",
+        "properties" : {
+          "structurizr.dsl.identifier" : "6e389506-b8f2-4151-aa3f-9d4599f76a55"
+        },
+        "tags" : "Element,Deployment Node"
+      } ],
+      "environment" : "Production",
+      "id" : "29",
+      "instances" : "1",
+      "name" : "OCI Cloud",
+      "properties" : {
+        "structurizr.dsl.identifier" : "01343139-3b2e-47d3-8c25-fce17aa374d2"
+      },
+      "tags" : "Element,Deployment Node"
+    } ],
+    "people" : [ {
+      "id" : "1",
+      "name" : "User",
+      "properties" : {
+        "structurizr.dsl.identifier" : "user"
+      },
+      "relationships" : [ {
+        "description" : "Uses",
+        "destinationId" : "5",
+        "id" : "20",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Uses",
+        "destinationId" : "4",
+        "id" : "21",
+        "linkedRelationshipId" : "20",
+        "sourceId" : "1"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "id" : "2",
+      "name" : "Administrator",
+      "properties" : {
+        "structurizr.dsl.identifier" : "admin"
+      },
+      "relationships" : [ {
+        "description" : "Administers",
+        "destinationId" : "4",
+        "id" : "22",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "documentation" : { },
+      "id" : "3",
+      "name" : "Telegram API",
+      "properties" : {
+        "structurizr.dsl.identifier" : "telegramApi"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "containers" : [ {
+        "description" : "React frontend",
+        "documentation" : { },
+        "id" : "5",
+        "name" : "Web Application",
+        "properties" : {
+          "structurizr.dsl.identifier" : "webApp"
+        },
+        "relationships" : [ {
+          "description" : "HTTPS",
+          "destinationId" : "6",
+          "id" : "23",
+          "sourceId" : "5",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "React"
+      }, {
+        "components" : [ {
+          "documentation" : { },
+          "id" : "7",
+          "name" : "Task Controller",
+          "properties" : {
+            "structurizr.dsl.identifier" : "taskController"
+          },
+          "relationships" : [ {
+            "description" : "Uses",
+            "destinationId" : "9",
+            "id" : "13",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component"
+        }, {
+          "documentation" : { },
+          "id" : "8",
+          "name" : "Auth Controller",
+          "properties" : {
+            "structurizr.dsl.identifier" : "authController"
+          },
+          "relationships" : [ {
+            "description" : "Uses",
+            "destinationId" : "10",
+            "id" : "14",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component"
+        }, {
+          "documentation" : { },
+          "id" : "9",
+          "name" : "Task Service",
+          "properties" : {
+            "structurizr.dsl.identifier" : "taskService"
+          },
+          "relationships" : [ {
+            "description" : "Uses",
+            "destinationId" : "11",
+            "id" : "15",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component"
+        }, {
+          "documentation" : { },
+          "id" : "10",
+          "name" : "Auth Service",
+          "properties" : {
+            "structurizr.dsl.identifier" : "authService"
+          },
+          "relationships" : [ {
+            "description" : "Uses",
+            "destinationId" : "12",
+            "id" : "16",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component"
+        }, {
+          "documentation" : { },
+          "id" : "11",
+          "name" : "Task Repository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "taskRepository"
+          },
+          "tags" : "Element,Component"
+        }, {
+          "documentation" : { },
+          "id" : "12",
+          "name" : "User Repository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "userRepository"
+          },
+          "tags" : "Element,Component"
+        } ],
+        "description" : "Backend API",
+        "documentation" : { },
+        "id" : "6",
+        "name" : "Task API",
+        "properties" : {
+          "structurizr.dsl.identifier" : "taskApi"
+        },
+        "relationships" : [ {
+          "description" : "Uses cache",
+          "destinationId" : "18",
+          "id" : "27",
+          "sourceId" : "6",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Reads/Writes",
+          "destinationId" : "19",
+          "id" : "28",
+          "sourceId" : "6",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Spring Boot"
+      }, {
+        "description" : "Telegram integration",
+        "documentation" : { },
+        "id" : "17",
+        "name" : "Telegram Bot",
+        "properties" : {
+          "structurizr.dsl.identifier" : "telegramBot"
+        },
+        "relationships" : [ {
+          "description" : "Uses Telegram API",
+          "destinationId" : "3",
+          "id" : "24",
+          "sourceId" : "17",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Calls API",
+          "destinationId" : "6",
+          "id" : "26",
+          "sourceId" : "17",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Bot"
+      }, {
+        "description" : "Cache",
+        "documentation" : { },
+        "id" : "18",
+        "name" : "Redis Cache",
+        "properties" : {
+          "structurizr.dsl.identifier" : "redis"
+        },
+        "tags" : "Element,Container",
+        "technology" : "Redis"
+      }, {
+        "description" : "Persistence",
+        "documentation" : { },
+        "id" : "19",
+        "name" : "Oracle Database",
+        "properties" : {
+          "structurizr.dsl.identifier" : "database"
+        },
+        "tags" : "Element,Container",
+        "technology" : "Oracle"
+      } ],
+      "documentation" : { },
+      "id" : "4",
+      "name" : "JustDoIt Platform",
+      "properties" : {
+        "structurizr.dsl.identifier" : "justDoIt"
+      },
+      "relationships" : [ {
+        "description" : "Uses Telegram API",
+        "destinationId" : "3",
+        "id" : "25",
+        "linkedRelationshipId" : "24",
+        "sourceId" : "4"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Name",
+  "properties" : {
+    "structurizr.inspection.error" : "50",
+    "structurizr.dsl" : "d29ya3NwYWNlIHsKCm1vZGVsIHsKCiAgICB1c2VyID0gcGVyc29uICJVc2VyIgogICAgYWRtaW4gPSBwZXJzb24gIkFkbWluaXN0cmF0b3IiCgogICAgdGVsZWdyYW1BcGkgPSBzb2Z0d2FyZVN5c3RlbSAiVGVsZWdyYW0gQVBJIgoKICAgIGp1c3REb0l0ID0gc29mdHdhcmVTeXN0ZW0gIkp1c3REb0l0IFBsYXRmb3JtIiB7CgogICAgICAgIHdlYkFwcCA9IGNvbnRhaW5lciAiV2ViIEFwcGxpY2F0aW9uIiAiUmVhY3QgZnJvbnRlbmQiICJSZWFjdCIKCiAgICAgICAgdGFza0FwaSA9IGNvbnRhaW5lciAiVGFzayBBUEkiICJCYWNrZW5kIEFQSSIgIlNwcmluZyBCb290IiB7CgogICAgICAgICAgICB0YXNrQ29udHJvbGxlciA9IGNvbXBvbmVudCAiVGFzayBDb250cm9sbGVyIgogICAgICAgICAgICBhdXRoQ29udHJvbGxlciA9IGNvbXBvbmVudCAiQXV0aCBDb250cm9sbGVyIgoKICAgICAgICAgICAgdGFza1NlcnZpY2UgPSBjb21wb25lbnQgIlRhc2sgU2VydmljZSIKICAgICAgICAgICAgYXV0aFNlcnZpY2UgPSBjb21wb25lbnQgIkF1dGggU2VydmljZSIKCiAgICAgICAgICAgIHRhc2tSZXBvc2l0b3J5ID0gY29tcG9uZW50ICJUYXNrIFJlcG9zaXRvcnkiCiAgICAgICAgICAgIHVzZXJSZXBvc2l0b3J5ID0gY29tcG9uZW50ICJVc2VyIFJlcG9zaXRvcnkiCgogICAgICAgICAgICB0YXNrQ29udHJvbGxlciAtPiB0YXNrU2VydmljZSAiVXNlcyIKICAgICAgICAgICAgYXV0aENvbnRyb2xsZXIgLT4gYXV0aFNlcnZpY2UgIlVzZXMiCgogICAgICAgICAgICB0YXNrU2VydmljZSAtPiB0YXNrUmVwb3NpdG9yeSAiVXNlcyIKICAgICAgICAgICAgYXV0aFNlcnZpY2UgLT4gdXNlclJlcG9zaXRvcnkgIlVzZXMiCiAgICAgICAgfQoKICAgICAgICB0ZWxlZ3JhbUJvdCA9IGNvbnRhaW5lciAiVGVsZWdyYW0gQm90IiAiVGVsZWdyYW0gaW50ZWdyYXRpb24iICJCb3QiCgogICAgICAgIHJlZGlzID0gY29udGFpbmVyICJSZWRpcyBDYWNoZSIgIkNhY2hlIiAiUmVkaXMiCgogICAgICAgIGRhdGFiYXNlID0gY29udGFpbmVyICJPcmFjbGUgRGF0YWJhc2UiICJQZXJzaXN0ZW5jZSIgIk9yYWNsZSIKICAgIH0KCiAgICB1c2VyIC0+IHdlYkFwcCAiVXNlcyIKCiAgICBhZG1pbiAtPiBqdXN0RG9JdCAiQWRtaW5pc3RlcnMiCgogICAgd2ViQXBwIC0+IHRhc2tBcGkgIkhUVFBTIgoKICAgIHRlbGVncmFtQm90IC0+IHRlbGVncmFtQXBpICJVc2VzIFRlbGVncmFtIEFQSSIKCiAgICB0ZWxlZ3JhbUJvdCAtPiB0YXNrQXBpICJDYWxscyBBUEkiCgogICAgdGFza0FwaSAtPiByZWRpcyAiVXNlcyBjYWNoZSIKCiAgICB0YXNrQXBpIC0+IGRhdGFiYXNlICJSZWFkcy9Xcml0ZXMiCgogICAgZGVwbG95bWVudEVudmlyb25tZW50ICJQcm9kdWN0aW9uIiB7CgogICAgICAgIGRlcGxveW1lbnROb2RlICJPQ0kgQ2xvdWQiIHsKCiAgICAgICAgICAgIGRlcGxveW1lbnROb2RlICJBcHBsaWNhdGlvbiBTZXJ2ZXIiIHsKICAgICAgICAgICAgICAgIHdlYkFwcEluc3RhbmNlID0gY29udGFpbmVySW5zdGFuY2Ugd2ViQXBwCiAgICAgICAgICAgICAgICB0YXNrQXBpSW5zdGFuY2UgPSBjb250YWluZXJJbnN0YW5jZSB0YXNrQXBpCiAgICAgICAgICAgICAgICB0ZWxlZ3JhbUJvdEluc3RhbmNlID0gY29udGFpbmVySW5zdGFuY2UgdGVsZWdyYW1Cb3QKICAgICAgICAgICAgfQoKICAgICAgICAgICAgZGVwbG95bWVudE5vZGUgIkNhY2hlIFNlcnZlciIgewogICAgICAgICAgICAgICAgcmVkaXNJbnN0YW5jZSA9IGNvbnRhaW5lckluc3RhbmNlIHJlZGlzCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGRlcGxveW1lbnROb2RlICJEYXRhYmFzZSBTZXJ2ZXIiIHsKICAgICAgICAgICAgICAgIGRhdGFiYXNlSW5zdGFuY2UgPSBjb250YWluZXJJbnN0YW5jZSBkYXRhYmFzZQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9Cgp2aWV3cyB7CgogICAgc3lzdGVtTGFuZHNjYXBlIHsKICAgICAgICBpbmNsdWRlICoKICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICB9CgogICAgc3lzdGVtQ29udGV4dCBqdXN0RG9JdCB7CiAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgYXV0b2xheW91dCBscgogICAgfQoKICAgIGNvbnRhaW5lciBqdXN0RG9JdCB7CiAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgYXV0b2xheW91dCBscgogICAgfQoKICAgIGNvbXBvbmVudCB0YXNrQXBpIHsKICAgICAgICBpbmNsdWRlICoKICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICB9CgogICAgZGVwbG95bWVudCAqIFByb2R1Y3Rpb24gewogICAgICAgIGluY2x1ZGUgKgogICAgICAgIGF1dG9sYXlvdXQgbHIKICAgIH0KCiAgICBkeW5hbWljIGp1c3REb0l0IHsKCiAgICAgICAgdXNlciAtPiB3ZWJBcHAgIkNyZWF0ZSB0YXNrIgogICAgICAgIHdlYkFwcCAtPiB0YXNrQXBpICJTZW5kIHJlcXVlc3QiCiAgICAgICAgdGFza0FwaSAtPiBkYXRhYmFzZSAiU3RvcmUgdGFzayIKCiAgICAgICAgYXV0b2xheW91dCBscgogICAgfQoKICAgIHRoZW1lIGRlZmF1bHQKfQoKfQ==",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "6",
+      "elements" : [ {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "generatedKey" : true,
+      "key" : "Component-001",
+      "name" : "Component View: JustDoIt Platform - Task API",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "13"
+      }, {
+        "id" : "14"
+      }, {
+        "id" : "15"
+      }, {
+        "id" : "16"
+      } ]
+    } ],
+    "configuration" : {
+      "styles" : { },
+      "terminology" : { },
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ]
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "generatedKey" : true,
+      "key" : "Container-001",
+      "name" : "Container View: JustDoIt Platform",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "20"
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "26"
+      }, {
+        "id" : "27"
+      }, {
+        "id" : "28"
+      } ],
+      "softwareSystemId" : "4"
+    } ],
+    "deploymentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "37",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "39",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "40",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "environment" : "Production",
+      "generatedKey" : true,
+      "key" : "Deployment-001",
+      "name" : "Deployment View: Production",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "33"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "41"
+      } ]
+    } ],
+    "dynamicViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elementId" : "4",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "generatedKey" : true,
+      "key" : "Dynamic-001",
+      "name" : "Dynamic View: JustDoIt Platform",
+      "order" : 6,
+      "relationships" : [ {
+        "description" : "Create task",
+        "id" : "20",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "Send request",
+        "id" : "23",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "Store task",
+        "id" : "28",
+        "order" : "3",
+        "response" : false
+      } ]
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "generatedKey" : true,
+      "key" : "SystemContext-001",
+      "name" : "System Context View: JustDoIt Platform",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "25"
+      } ],
+      "softwareSystemId" : "4"
+    } ],
+    "systemLandscapeViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "generatedKey" : true,
+      "key" : "SystemLandscape-001",
+      "name" : "System Landscape View",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "25"
+      } ]
+    } ]
+  }
+}
