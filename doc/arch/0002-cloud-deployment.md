@@ -1,8 +1,5 @@
 # 0002 - Cloud Deployment on OCI
 
-## Status
-Accepted
-
 ## Context
 The system needs to run in a reliable cloud environment. It must support users accessing the web application, Telegram bot requests, backend services, authentication, database access, caching and monitoring.
 
