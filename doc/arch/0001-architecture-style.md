@@ -1,8 +1,5 @@
 # 0001 - Architecture Style Selection
 
-## Status
-Accepted
-
 ## Context
 The system is a task management platform deployed on Oracle Cloud Infrastructure. It includes a web application, a Telegram bot, a backend API, authentication, caching, databases, background processing and monitoring.
 
