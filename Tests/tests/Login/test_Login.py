@@ -17,7 +17,7 @@ def test_login_valid_credentials(driver):
     """TC-LOGIN-01: Login con credenciales correctas."""
     login = Login(driver)
     login.open(LOGIN_URL)
-    login.login(VALID_EMAIL, "345")
+    login.login(VALID_EMAIL, VALID_PASSWORD)
 
     assert "dashboard" in login.current_url() or login.is_logged_in(), (
         f"❌ Expected dashboard. URL: {login.current_url()}"
