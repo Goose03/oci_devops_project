@@ -48,6 +48,9 @@ spec:
   # Guarda los últimos 3 deploys para poder hacer rollback
   revisionHistoryLimit: 3
 
+  # Si el deploy no completa en 5 min, Kubernetes lo marca como FAILED
+  progressDeadlineSeconds: 300
+
   template:
     metadata:
       labels:
