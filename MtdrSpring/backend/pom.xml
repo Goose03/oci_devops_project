@@ -29,6 +29,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-community-dialects -->
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
@@ -180,6 +184,9 @@
 				<version>${project.parent.version}</version>
 				<configuration>
 					<mainClass>com.springboot.MyTodoList.MyTodoListApplication</mainClass>
+					<systemPropertyVariables>
+						<oracle.net.tns_admin>C:/Github/oci_devops_project1/MtdrSpring/backend/wallet</oracle.net.tns_admin>
+					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>

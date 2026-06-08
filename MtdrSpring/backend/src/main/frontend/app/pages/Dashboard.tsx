@@ -12,6 +12,8 @@ import {
   TaskDistributionPoint,
   SprintKpiPoint,
 } from '../services/api';
+
+// VelocityPoint.week is reused as sprint name in sprint-based data
 import {
   Card,
   CardContent,
@@ -140,6 +142,9 @@ export function Dashboard({
   const [priorityData, setPriorityData] = useState<PriorityPoint[]>([]);
   const [workedHoursData, setWorkedHoursData] = useState<WorkedHoursPoint[]>([]);
   const [distributionData, setDistributionData] = useState<TaskDistributionPoint[]>([]);
+  const [velocityBySprintData, setVelocityBySprintData] = useState<VelocityPoint[]>([]);
+  const [workedHoursBySprintData, setWorkedHoursBySprintData] = useState<WorkedHoursPoint[]>([]);
+  const [tasksBySprintData, setTasksBySprintData] = useState<WorkedHoursPoint[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
@@ -165,17 +170,29 @@ export function Dashboard({
     const sid = selectedSprintId || undefined;
     setAnalyticsLoading(true);
     setAnalyticsError(null);
+    const sprintCalls = selectedProjectId
+      ? [
+          analyticsApi.getVelocityBySprint(selectedProjectId),
+          analyticsApi.getWorkedHoursBySprint(selectedProjectId),
+          analyticsApi.getTasksBySprint(selectedProjectId),
+        ]
+      : [Promise.resolve([]), Promise.resolve([]), Promise.resolve([])];
+
     Promise.all([
       analyticsApi.getVelocity(12, pid, sid),
       analyticsApi.getPriorityDistribution(pid, sid),
       analyticsApi.getWorkedHours(12, pid, sid),
       analyticsApi.getTaskDistribution(pid, sid),
+      ...sprintCalls,
     ])
-      .then(([vel, pri, wh, dist]) => {
-        setVelocityData(vel);
-        setPriorityData(pri);
-        setWorkedHoursData(wh);
-        setDistributionData(dist);
+      .then(([vel, pri, wh, dist, velSprint, whSprint, tasksSprint]) => {
+        setVelocityData(vel as VelocityPoint[]);
+        setPriorityData(pri as PriorityPoint[]);
+        setWorkedHoursData(wh as WorkedHoursPoint[]);
+        setDistributionData(dist as TaskDistributionPoint[]);
+        setVelocityBySprintData(velSprint as VelocityPoint[]);
+        setWorkedHoursBySprintData(whSprint as WorkedHoursPoint[]);
+        setTasksBySprintData(tasksSprint as WorkedHoursPoint[]);
       })
       .catch((err) => {
         console.error('Analytics fetch failed:', err);
@@ -218,22 +235,38 @@ export function Dashboard({
       .finally(() => setKpiLoading(false));
   }, [selectedProjectId, selectedSprintId]);
 
-  // ── Transform worked-hours flat list → stacked bar format ──────
+  // ── Sprint-based worked hours → stacked bar format ─────────────
   const workedHoursChartData = (() => {
-    const weeks = Array.from(new Set(workedHoursData.map((d) => d.week))).sort();
-    const users = Array.from(new Set(workedHoursData.map((d) => d.userName)));
-    return weeks.map((w) => {
-      const row: Record<string, string | number> = { week: shortWeek(w) };
+    const sprints = Array.from(new Set(workedHoursBySprintData.map((d) => d.week)));
+    const users = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
+    return sprints.map((s) => {
+      const row: Record<string, string | number> = { week: s };
       users.forEach((u) => {
-        const entry = workedHoursData.find((d) => d.week === w && d.userName === u);
+        const entry = workedHoursBySprintData.find((d) => d.week === s && d.userName === u);
         row[u] = entry ? entry.hours : 0;
       });
       return row;
     });
   })();
-  const workedHoursUsers = Array.from(new Set(workedHoursData.map((d) => d.userName)));
+  const workedHoursUsers = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
 
-  const velocityChartData = velocityData.map((d) => ({ ...d, week: shortWeek(d.week) }));
+  const tasksBySprintChartData = (() => {
+    const sprintNames = Array.from(new Set(tasksBySprintData.map((d) => d.week)));
+    const members = Array.from(new Set(tasksBySprintData.map((d) => d.userName)));
+    return sprintNames.map((s) => {
+      const row: Record<string, string | number> = { sprint: s };
+      members.forEach((u) => {
+        const entry = tasksBySprintData.find((d) => d.week === s && d.userName === u);
+        row[u] = entry ? entry.hours : 0;
+      });
+      return row;
+    });
+  })();
+  const tasksBySprintMembers = Array.from(new Set(tasksBySprintData.map((d) => d.userName)));
+
+  const velocityChartData = velocityBySprintData.length > 0
+    ? velocityBySprintData.map((d) => ({ ...d, week: d.week }))
+    : velocityData.map((d) => ({ ...d, week: shortWeek(d.week) }));
   const priorityChartData = priorityData.map((d) => ({
     ...d,
     name: d.priority.charAt(0).toUpperCase() + d.priority.slice(1),
@@ -525,7 +558,7 @@ export function Dashboard({
             <CardTitle className="flex items-center gap-2 text-base">
               <Zap className="w-4 h-4 text-[#30c2b7]" />
               Task Completion Velocity
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Created vs Completed / week</Badge>
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Created vs Completed / sprint</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -608,7 +641,7 @@ formatter={(val: number, name: string) => [val, name]}                  />
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock className="w-4 h-4 text-indigo-500" />
               Worked Hours per Team Member
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Stacked by week</Badge>
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Stacked by sprint</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -641,57 +674,41 @@ formatter={(val: number, name: string) => [val, name]}                  />
           </CardContent>
         </Card>
 
-        {/* ④ Task Distribution by Team Member */}
+        {/* ④ Tasks per Member per Sprint */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <Users className="w-4 h-4 text-[#30c2b7]" />
-              Task Distribution by Member
-              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">% of total tasks</Badge>
+              Tasks per Member per Sprint
+              <Badge variant="outline" className="text-xs ml-auto font-normal text-gray-500">Stacked by member</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
               <ChartSkeleton />
-            ) : distributionData.length === 0 ? (
-              <ChartEmpty message="No tasks assigned yet. Assign tasks to team members to see the distribution." />
+            ) : tasksBySprintChartData.length === 0 ? (
+              <ChartEmpty message="No sprint data yet. Select a project with assigned tasks to see the breakdown." />
             ) : (
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="60%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={distributionData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      dataKey="taskCount"
-                      nameKey="userName"
-                      labelLine={false}
-                      label={renderPieLabel}
-                    >
-                      {distributionData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ borderRadius: 8, fontSize: 12 }}
-                      formatter={(val: number, _: string, props: any) => [
-                        `${val} tasks (${props.payload.percentage}%)`,
-                        props.payload.userName,
-                      ]}
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={tasksBySprintChartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="sprint" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                    formatter={(val: number, name: string) => [val + ' tasks', name]}
+                  />
+                  <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+                  {tasksBySprintMembers.map((name, i) => (
+                    <Bar
+                      key={name}
+                      dataKey={name}
+                      fill={COLORS[i % COLORS.length]}
+                      radius={[3, 3, 0, 0]}
                     />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-col gap-2 overflow-auto max-h-52">
-                  {distributionData.map((d, i) => (
-                    <div key={d.userId} className="flex items-center gap-2 text-sm">
-                      <span className="w-3 h-3 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                      <span className="truncate max-w-24 dark:text-gray-200" title={d.userName}>{d.userName}</span>
-                      <span className="ml-auto font-semibold dark:text-white whitespace-nowrap">{d.percentage}%</span>
-                    </div>
                   ))}
-                </div>
-              </div>
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </CardContent>
         </Card>

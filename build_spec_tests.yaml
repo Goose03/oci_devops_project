@@ -1,0 +1,46 @@
+version: 0.1
+component: build
+timeoutInSeconds: 900
+shell: bash
+
+env:
+  variables:
+    HEADLESS: "true"
+    DASHBOARD_URL: "http://140.84.190.22"
+    JIRA_URL: "https://tec-team-kretou7k.atlassian.net"
+    JIRA_EMAIL: "A00228158@tec.mx"
+    JIRA_PROJECT: "SWE"
+
+  # Set DASHBOARD_EMAIL, DASHBOARD_PASS, JIRA_TOKEN as secret params
+  # in the OCI DevOps pipeline configuration (not hardcoded here).
+
+steps:
+  - type: Command
+    name: "Install Chrome"
+    command: |
+      yum install -y chromium 2>/dev/null || \
+      (curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm \
+        -o /tmp/chrome.rpm && yum install -y /tmp/chrome.rpm)
+      google-chrome --version || chromium-browser --version
+
+  - type: Command
+    name: "Install Python dependencies"
+    command: |
+      pip3 install --quiet pytest selenium webdriver-manager python-dotenv requests
+
+  - type: Command
+    name: "Run Selenium tests"
+    command: |
+      cd Tests
+      pytest tests/Login tests/WebApp tests/Dashboard \
+        -v --tb=short \
+        --junitxml=test-results.xml \
+        2>&1 | tee test-output.txt
+      PYTEST_EXIT=$?
+
+      # Create JIRA tickets for all failed tests
+      if [ -f test-results.xml ]; then
+        python3 utils/create_jira_ticket.py test-results.xml
+      fi
+
+      exit $PYTEST_EXIT

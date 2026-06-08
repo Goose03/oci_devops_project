@@ -19,8 +19,15 @@ class Login(BasePage):
         self.driver = driver
 
     def open(self, url):
-        self.driver.get(url)
+        # Navigate to root so the app loads and redirects to /login automatically.
+        # Going directly to /login can cause a 403 on some server configs.
+        base = url.replace("/login", "").rstrip("/")
+        self.driver.get(base)
         wait_seconds(2)
+        # If the app didn't redirect to /login, navigate there explicitly
+        if "/login" not in self.driver.current_url:
+            self.driver.get(url)
+            wait_seconds(2)
 
     def enter_email(self, email):
         field = wait_for_element(self.driver, LOGIN_EMAIL)
