@@ -37,15 +37,32 @@ spec:
     matchLabels:
       app: todolistapp-springboot
   replicas: 2
+
+  # ── Zero downtime: nunca baja un pod hasta que el nuevo esté listo ──────────
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # puede tener 1 pod extra durante el deploy
+      maxUnavailable: 0  # nunca quita un pod antes de que el nuevo pase readiness
+
+  # Guarda los últimos 3 deploys para poder hacer rollback
+  revisionHistoryLimit: 3
+
+  # Si el deploy no completa en 5 min, Kubernetes lo marca como FAILED
+  progressDeadlineSeconds: 300
+
   template:
     metadata:
       labels:
         app: todolistapp-springboot
         version: v1
     spec:
+      # Tiempo que Kubernetes espera para que el pod termine conexiones activas
+      terminationGracePeriodSeconds: 30
+
       containers:
         - name: todolistapp-springboot
-          image: %DOCKER_REGISTRY%/todolistapp-springboot:0.1
+          image: %DOCKER_REGISTRY%/todolistapp-springboot:%IMAGE_VERSION%
           imagePullPolicy: Always
           env:
             - name: db_user
@@ -77,6 +94,39 @@ spec:
               mountPath: /mtdrworkshop/creds
           ports:
             - containerPort: 8080
+              name: http
+
+          # ── Readiness probe ─────────────────────────────────────────────────
+          # Kubernetes NO envía tráfico hasta que este check pase.
+          # Durante el rolling update, el pod viejo sigue activo hasta que
+          # el nuevo pase este check — garantiza zero downtime.
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30   # Spring Boot tarda ~20-30s en arrancar
+            periodSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+
+          # ── Liveness probe ──────────────────────────────────────────────────
+          # Si este check falla 3 veces seguidas, Kubernetes reinicia el pod.
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60   # espera más que readiness para no matar al arrancar
+            periodSeconds: 15
+            failureThreshold: 3
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+
       restartPolicy: Always
       volumes:
         - name: creds
