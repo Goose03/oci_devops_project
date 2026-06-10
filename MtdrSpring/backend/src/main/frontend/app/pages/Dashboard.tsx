@@ -153,6 +153,7 @@ export function Dashboard({
   const [sprintsForProject, setSprintsForProject] = useState<Sprint[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [selectedSprintId, setSelectedSprintId] = useState<string>('');
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('all');
   const [sprintKpi, setSprintKpi] = useState<SprintKpiPoint | null>(null);
   const [kpiLoading, setKpiLoading] = useState(false);
 
@@ -214,7 +215,8 @@ export function Dashboard({
 
   // ── Load sprints whenever selected project changes ─────────────
   useEffect(() => {
-    if (!selectedProjectId) { setSprintsForProject([]); setSelectedSprintId(''); return; }
+    if (!selectedProjectId) { setSprintsForProject([]); setSelectedSprintId(''); setSelectedMemberId('all'); return; }
+    setSelectedMemberId('all');
     sprintsApi.getByProject(selectedProjectId)
       .then((data) => {
         setSprintsForProject(data);
@@ -235,34 +237,56 @@ export function Dashboard({
       .finally(() => setKpiLoading(false));
   }, [selectedProjectId, selectedSprintId]);
 
+  // ── Available members (union of both sprint-based datasets) ──────
+  const availableMembers = Array.from(new Set([
+    ...workedHoursBySprintData.map((d) => d.userName),
+    ...tasksBySprintData.map((d) => d.userName),
+  ])).filter(Boolean).sort();
+
+  // ── Apply member filter to raw data before pivoting ───────────────
+  const filteredWorkedHoursData = selectedMemberId === 'all'
+    ? workedHoursBySprintData
+    : workedHoursBySprintData.filter((d) => d.userName === selectedMemberId);
+
+  const filteredTasksBySprintData = selectedMemberId === 'all'
+    ? tasksBySprintData
+    : tasksBySprintData.filter((d) => d.userName === selectedMemberId);
+
   // ── Sprint-based worked hours → stacked bar format ─────────────
   const workedHoursChartData = (() => {
-    const sprints = Array.from(new Set(workedHoursBySprintData.map((d) => d.week)));
-    const users = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
+    const sprints = Array.from(new Set(filteredWorkedHoursData.map((d) => d.week)));
+    const users = Array.from(new Set(filteredWorkedHoursData.map((d) => d.userName)));
     return sprints.map((s) => {
       const row: Record<string, string | number> = { week: s };
       users.forEach((u) => {
-        const entry = workedHoursBySprintData.find((d) => d.week === s && d.userName === u);
+        const entry = filteredWorkedHoursData.find((d) => d.week === s && d.userName === u);
         row[u] = entry ? entry.hours : 0;
       });
       return row;
     });
   })();
-  const workedHoursUsers = Array.from(new Set(workedHoursBySprintData.map((d) => d.userName)));
+  const workedHoursUsers = Array.from(new Set(filteredWorkedHoursData.map((d) => d.userName)));
 
   const tasksBySprintChartData = (() => {
-    const sprintNames = Array.from(new Set(tasksBySprintData.map((d) => d.week)));
-    const members = Array.from(new Set(tasksBySprintData.map((d) => d.userName)));
+    const sprintNames = Array.from(new Set(filteredTasksBySprintData.map((d) => d.week)));
+    const members = Array.from(new Set(filteredTasksBySprintData.map((d) => d.userName)));
     return sprintNames.map((s) => {
       const row: Record<string, string | number> = { sprint: s };
       members.forEach((u) => {
-        const entry = tasksBySprintData.find((d) => d.week === s && d.userName === u);
+        const entry = filteredTasksBySprintData.find((d) => d.week === s && d.userName === u);
         row[u] = entry ? entry.hours : 0;
       });
       return row;
     });
   })();
-  const tasksBySprintMembers = Array.from(new Set(tasksBySprintData.map((d) => d.userName)));
+  const tasksBySprintMembers = Array.from(new Set(filteredTasksBySprintData.map((d) => d.userName)));
+
+  // ── Per-member KPI totals (only when a specific member is selected) ─
+  const memberKpi = selectedMemberId !== 'all' ? {
+    hoursWorked: filteredWorkedHoursData.reduce((s, d) => s + d.hours, 0),
+    tasksAssigned: filteredTasksBySprintData.reduce((s, d) => s + d.hours, 0),
+    distributionEntry: distributionData.find((d) => d.userName === selectedMemberId) ?? null,
+  } : null;
 
   const velocityChartData = velocityBySprintData.length > 0
     ? velocityBySprintData.map((d) => ({ ...d, week: d.week }))
@@ -374,6 +398,28 @@ export function Dashboard({
               </Select>
             </div>
 
+            {/* Member selector */}
+            <div className="flex-1 min-w-40">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1">
+                <Users className="w-3.5 h-3.5" /> Miembro
+              </p>
+              <Select
+                value={selectedMemberId}
+                onValueChange={setSelectedMemberId}
+                disabled={!selectedProjectId || availableMembers.length === 0}
+              >
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {availableMembers.map((name) => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
           </div>
         </CardContent>
       </Card>
@@ -468,6 +514,81 @@ export function Dashboard({
             </div>
           ) : (
             <p className="text-sm text-gray-400 py-2">Select a project to see KPI data.</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Member KPI Cards (shown when a specific member is selected) ── */}
+      {selectedMemberId !== 'all' && selectedProjectId && (
+        <div>
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            {selectedMemberId} — KPIs Individuales
+          </h2>
+
+          {analyticsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading member data…
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+
+              {/* Hours Worked */}
+              <Card className="border-t-4 border-t-[#30c2b7]">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Horas Trabajadas</p>
+                      <p className="text-2xl font-semibold dark:text-white">{memberKpi?.hoursWorked ?? 0}h</p>
+                      <p className="text-xs text-gray-400 mt-0.5">en los sprints del proyecto</p>
+                    </div>
+                    <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/40 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-[#30c2b7]" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tasks Assigned */}
+              <Card className="border-t-4 border-t-blue-500">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Tareas Asignadas</p>
+                      <p className="text-2xl font-semibold dark:text-white">{memberKpi?.tasksAssigned ?? 0}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">total en todos los sprints</p>
+                    </div>
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Task Share % */}
+              {memberKpi?.distributionEntry && (
+                <Card className="border-t-4 border-t-indigo-500">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Carga del Equipo</p>
+                        <p className="text-2xl font-semibold dark:text-white">{memberKpi.distributionEntry.percentage}%</p>
+                        <div className="mt-1 h-1.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(memberKpi.distributionEntry.percentage, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
+                        <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+            </div>
           )}
         </div>
       )}
