@@ -2,6 +2,7 @@
 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException
 
 from utils.wait_utils import wait_for_element, wait_for_clickable, wait_seconds
 from pages.base_page import BasePage
@@ -18,16 +19,24 @@ class Login(BasePage):
     def __init__(self, driver):
         self.driver = driver
 
-    def open(self, url):
+    def open(self, url, retries=3):
         # Navigate to root so the app loads and redirects to /login automatically.
         # Going directly to /login can cause a 403 on some server configs.
         base = url.replace("/login", "").rstrip("/")
-        self.driver.get(base)
-        wait_seconds(2)
-        # If the app didn't redirect to /login, navigate there explicitly
-        if "/login" not in self.driver.current_url:
-            self.driver.get(url)
-            wait_seconds(2)
+        for attempt in range(1, retries + 1):
+            try:
+                self.driver.get(base)
+                wait_seconds(2)
+                if "/login" not in self.driver.current_url:
+                    self.driver.get(url)
+                    wait_seconds(2)
+                return
+            except WebDriverException as e:
+                if attempt < retries:
+                    print(f"[open] attempt {attempt} failed ({e.msg[:60]}), retrying in 8s…")
+                    wait_seconds(8)
+                else:
+                    raise
 
     def enter_email(self, email):
         field = wait_for_element(self.driver, LOGIN_EMAIL)

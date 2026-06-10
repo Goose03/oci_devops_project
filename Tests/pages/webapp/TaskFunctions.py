@@ -1,6 +1,7 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
 
 from utils.wait_utils import wait_for_element, wait_for_clickable, wait_seconds
 from pages.base_page import BasePage
@@ -20,9 +21,18 @@ class TaskPage(BasePage):
     def __init__(self, driver):
         self.driver = driver
 
-    def open(self, url):
-        self.driver.get(url)
-        wait_seconds(5)
+    def open(self, url, retries=3):
+        for attempt in range(1, retries + 1):
+            try:
+                self.driver.get(url)
+                wait_seconds(5)
+                return
+            except WebDriverException as e:
+                if attempt < retries:
+                    print(f"[open] attempt {attempt} failed ({e.msg[:60]}), retrying in 8s…")
+                    wait_seconds(8)
+                else:
+                    raise
 
     def click_new_task(self):
         try:
