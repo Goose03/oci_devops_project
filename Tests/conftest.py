@@ -39,6 +39,7 @@ def driver():
         service=Service(ChromeDriverManager().install()),
         options=options,
     )
+    drv.set_page_load_timeout(30)
     yield drv
     drv.quit()
 
