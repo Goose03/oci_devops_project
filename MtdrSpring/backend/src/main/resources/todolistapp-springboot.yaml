@@ -68,7 +68,7 @@ spec:
             - name: db_user
               value: "CHATBOT_USER"
             - name: db_url
-              value: "jdbc:oracle:thin:@justtodo_high?TNS_ADMIN=/mtdrworkshop/creds"
+              value: "jdbc:oracle:thin:@rv9chxphs7jysz5z_high?TNS_ADMIN=/mtdrworkshop/creds"
             - name: todo.table.name
               value: "todoitem"
             - name: driver_class_name
