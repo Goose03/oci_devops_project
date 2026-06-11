@@ -282,10 +282,31 @@ export function Dashboard({
   const tasksBySprintMembers = Array.from(new Set(filteredTasksBySprintData.map((d) => d.userName)));
 
   // ── Per-member KPI totals (only when a specific member is selected) ─
+  const selectedSprintName = selectedSprintId
+    ? sprintsForProject.find((s) => s.id === selectedSprintId)?.name ?? null
+    : null;
+
   const memberKpi = selectedMemberId !== 'all' ? {
-    hoursWorked: filteredWorkedHoursData.reduce((s, d) => s + d.hours, 0),
-    tasksAssigned: filteredTasksBySprintData.reduce((s, d) => s + d.hours, 0),
-    distributionEntry: distributionData.find((d) => d.userName === selectedMemberId) ?? null,
+    // Project-wide (all sprints)
+    totalHoursProject: workedHoursBySprintData
+      .filter((d) => d.userName === selectedMemberId)
+      .reduce((s, d) => s + d.hours, 0),
+    totalTasksProject: tasksBySprintData
+      .filter((d) => d.userName === selectedMemberId)
+      .reduce((s, d) => s + d.hours, 0),
+    teamWorkloadPct: distributionData.find((d) => d.userName === selectedMemberId)?.percentage ?? null,
+    // Sprint-specific
+    sprintName: selectedSprintName,
+    sprintHours: selectedSprintName
+      ? workedHoursBySprintData
+          .filter((d) => d.userName === selectedMemberId && d.week === selectedSprintName)
+          .reduce((s, d) => s + d.hours, 0)
+      : null,
+    sprintTasks: selectedSprintName
+      ? tasksBySprintData
+          .filter((d) => d.userName === selectedMemberId && d.week === selectedSprintName)
+          .reduce((s, d) => s + d.hours, 0)
+      : null,
   } : null;
 
   const velocityChartData = velocityBySprintData.length > 0
@@ -518,12 +539,12 @@ export function Dashboard({
         </div>
       )}
 
-      {/* ── Member KPI Cards (shown when a specific member is selected) ── */}
+      {/* ── Member KPI Cards (shown only when a specific member is selected) ── */}
       {selectedMemberId !== 'all' && selectedProjectId && (
-        <div>
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-2">
             <Users className="w-4 h-4" />
-            {selectedMemberId} — KPIs Individuales
+            {selectedMemberId} — Individual KPIs
           </h2>
 
           {analyticsLoading ? (
@@ -531,64 +552,123 @@ export function Dashboard({
               <Loader2 className="w-4 h-4 animate-spin" /> Loading member data…
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <>
+              {/* ── Project Overview: 3 global KPIs ── */}
+              <div>
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <FolderKanban className="w-3.5 h-3.5" /> Project Overview
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-              {/* Hours Worked */}
-              <Card className="border-t-4 border-t-[#30c2b7]">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Horas Trabajadas</p>
-                      <p className="text-2xl font-semibold dark:text-white">{memberKpi?.hoursWorked ?? 0}h</p>
-                      <p className="text-xs text-gray-400 mt-0.5">en los sprints del proyecto</p>
-                    </div>
-                    <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/40 rounded-lg flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-[#30c2b7]" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Tasks Assigned */}
-              <Card className="border-t-4 border-t-blue-500">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Tareas Asignadas</p>
-                      <p className="text-2xl font-semibold dark:text-white">{memberKpi?.tasksAssigned ?? 0}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">total en todos los sprints</p>
-                    </div>
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Task Share % */}
-              {memberKpi?.distributionEntry && (
-                <Card className="border-t-4 border-t-indigo-500">
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Carga del Equipo</p>
-                        <p className="text-2xl font-semibold dark:text-white">{memberKpi.distributionEntry.percentage}%</p>
-                        <div className="mt-1 h-1.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min(memberKpi.distributionEntry.percentage, 100)}%` }}
-                          />
+                  {/* 1. Hours Worked — all sprints */}
+                  <Card className="border-t-4 border-t-[#30c2b7]">
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Hours Worked</p>
+                          <p className="text-2xl font-semibold dark:text-white">{memberKpi?.totalHoursProject ?? 0}h</p>
+                          <p className="text-xs text-gray-400 mt-0.5">across all project sprints</p>
+                        </div>
+                        <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/40 rounded-lg flex items-center justify-center">
+                          <Clock className="w-5 h-5 text-[#30c2b7]" />
                         </div>
                       </div>
-                      <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
-                        <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardContent>
+                  </Card>
 
-            </div>
+                  {/* 2. Tasks Assigned — all sprints */}
+                  <Card className="border-t-4 border-t-blue-500">
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Tasks Assigned</p>
+                          <p className="text-2xl font-semibold dark:text-white">{memberKpi?.totalTasksProject ?? 0}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">across all project sprints</p>
+                        </div>
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+                          <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* 3. Team Workload % — entire project */}
+                  <Card className="border-t-4 border-t-indigo-500">
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Team Workload</p>
+                          <p className="text-2xl font-semibold dark:text-white">
+                            {memberKpi?.teamWorkloadPct != null ? `${memberKpi.teamWorkloadPct}%` : '—'}
+                          </p>
+                          <div className="mt-1 h-1.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(memberKpi?.teamWorkloadPct ?? 0, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
+                          <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+              </div>
+
+              {/* ── Sprint KPIs: 2 sprint-specific KPIs ── */}
+              <div>
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <ListChecks className="w-3.5 h-3.5" />
+                  {memberKpi?.sprintName ? `Sprint: ${memberKpi.sprintName}` : 'Sprint — select a sprint above'}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                  {/* 4. Tasks in selected sprint */}
+                  <Card className={`border-t-4 ${memberKpi?.sprintName ? 'border-t-green-500' : 'border-t-gray-200 dark:border-t-gray-700'}`}>
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Tasks in Sprint</p>
+                          <p className="text-2xl font-semibold dark:text-white">
+                            {memberKpi?.sprintTasks != null ? memberKpi.sprintTasks : '—'}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {memberKpi?.sprintName ? `in ${memberKpi.sprintName}` : 'no sprint selected'}
+                          </p>
+                        </div>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${memberKpi?.sprintName ? 'bg-green-100 dark:bg-green-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                          <CheckCircle2 className={`w-5 h-5 ${memberKpi?.sprintName ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`} />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* 5. Hours in selected sprint */}
+                  <Card className={`border-t-4 ${memberKpi?.sprintName ? 'border-t-orange-400' : 'border-t-gray-200 dark:border-t-gray-700'}`}>
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Hours in Sprint</p>
+                          <p className="text-2xl font-semibold dark:text-white">
+                            {memberKpi?.sprintHours != null ? `${memberKpi.sprintHours}h` : '—'}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {memberKpi?.sprintName ? `in ${memberKpi.sprintName}` : 'no sprint selected'}
+                          </p>
+                        </div>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${memberKpi?.sprintName ? 'bg-orange-100 dark:bg-orange-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                          <TrendingUp className={`w-5 h-5 ${memberKpi?.sprintName ? 'text-orange-500' : 'text-gray-400'}`} />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}
