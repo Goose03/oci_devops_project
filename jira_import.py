@@ -88,8 +88,8 @@ SPRINT_MAP: dict[str, int] = {
 SPRINT_DATE_RANGES = [
     (datetime(2026, 3, 13, 23, 59, 59, tzinfo=timezone.utc), 6),   # Sprint-0
     (datetime(2026, 4, 17, 23, 59, 59, tzinfo=timezone.utc), 3),   # Sprint-1
-    (datetime(2026, 4, 20, 23, 59, 59, tzinfo=timezone.utc), 4),   # Sprint-2
-    (datetime(2026, 5, 22, 23, 59, 59, tzinfo=timezone.utc), 5),   # Sprint-3
+    (datetime(2026, 5, 24, 23, 59, 59, tzinfo=timezone.utc), 4),   # Sprint-2  (hasta 24 mayo)
+    (datetime(2099, 12, 31, 23, 59, 59, tzinfo=timezone.utc), 5),  # Sprint-3  (25 mayo en adelante)
 ]
 
 def sprint_id_from_date(dt: datetime) -> str:
@@ -142,11 +142,9 @@ def seconds_to_hours(item: ET.Element, tag: str) -> str:
 def load_items(path: str) -> list[ET.Element]:
     with open(path, encoding="utf-8") as f:
         raw = f.read()
-    # Strip any leading non-XML text (browser renders "This XML file does not appear..." first)
     start = raw.find("<")
     if start > 0:
         raw = raw[start:]
-    # Fix invalid XML: bare <> in content (e.g. SWE-66 summary "<>") must be escaped
     raw = raw.replace("<>", "&lt;&gt;")
     root = ET.fromstring(raw)
     channel = root.find("channel")
@@ -292,10 +290,10 @@ def _execute(statements: list[str]) -> None:
         print("[jira_import] ERROR: 'oracledb' not installed.\n  Run:  pip install oracledb", file=sys.stderr)
         sys.exit(1)
 
-    DB_USER    = "CHATBOT_USER"
+    DB_USER     = "CHATBOT_USER"
     DB_PASSWORD = input("Oracle DB password: ")
-    DB_DSN     = "justtodo_high"
-    WALLET_DIR = str(Path(__file__).parent / "MtdrSpring" / "backend" / "wallet")
+    DB_DSN      = "justtodo_high"
+    WALLET_DIR  = str(Path(__file__).parent / "MtdrSpring" / "backend" / "wallet")
 
     print(f"[jira_import] Connecting to {DB_DSN} as {DB_USER}…", file=sys.stderr)
     oracledb.init_oracle_client()
