@@ -1,15 +1,13 @@
 package com.springboot.MyTodoList.controller;
 
 import com.springboot.MyTodoList.config.BotProps;
-import com.springboot.MyTodoList.repository.AppUserRepository;
-import com.springboot.MyTodoList.service.JoinCodeService;
 import com.springboot.MyTodoList.service.DeepSeekService;
+import com.springboot.MyTodoList.service.JoinCodeService;
 import com.springboot.MyTodoList.service.TaskService;
 import com.springboot.MyTodoList.service.ToDoItemService;
 import com.springboot.MyTodoList.util.BotActions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.BotSession;
@@ -24,31 +22,32 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 public class ToDoItemBotController implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
-    private ToDoItemService toDoItemService;
-    private DeepSeekService deepSeekService;
-    private TaskService taskService;
-    private final TelegramClient telegramClient;
 
+    private final ToDoItemService toDoItemService;
+    private final DeepSeekService deepSeekService;
+    private final TaskService taskService;
+    private final JoinCodeService joinCodeService;
+    private final TelegramClient telegramClient;
     private final BotProps botProps;
 
-    @Value("${telegram.bot.token}")
-    private String telegramBotToken;
+    public ToDoItemBotController(
+            BotProps botProps,
+            ToDoItemService toDoItemService,
+            DeepSeekService deepSeekService,
+            TaskService taskService,
+            JoinCodeService joinCodeService
+    ) {
+        this.botProps = botProps;
+        this.toDoItemService = toDoItemService;
+        this.deepSeekService = deepSeekService;
+        this.taskService = taskService;
+        this.joinCodeService = joinCodeService;
+        this.telegramClient = new OkHttpTelegramClient(botProps.getToken());
+    }
 
     @Override
     public String getBotToken() {
-        if (telegramBotToken != null && !telegramBotToken.trim().isEmpty()) {
-            return telegramBotToken;
-        } else {
-            return botProps.getToken();
-        }
-    }
-
-    public ToDoItemBotController(BotProps bp, ToDoItemService tsvc, DeepSeekService ds, TaskService taskService) {
-        this.botProps = bp;
-        this.telegramClient = new OkHttpTelegramClient(getBotToken());
-        this.toDoItemService = tsvc;
-        this.deepSeekService = ds;
-        this.taskService = taskService;
+        return botProps.getToken();
     }
 
     @Override
@@ -58,36 +57,35 @@ public class ToDoItemBotController implements SpringLongPollingBot, LongPollingS
 
     @Override
     public void consume(Update update) {
+        if (!update.hasMessage() || !update.getMessage().hasText()) {
+            return;
+        }
 
-        if (!update.hasMessage() || !update.getMessage().hasText()) return;
-
-        String messageTextFromTelegram = update.getMessage().getText();
-        long chatId = update.getMessage().getChatId();
+        String messageText = update.getMessage().getText().trim();
+        Long chatId = update.getMessage().getChatId();
 
         String telegramUsername = null;
         if (update.getMessage().getFrom() != null) {
             telegramUsername = update.getMessage().getFrom().getUserName();
         }
 
-        BotActions actions = new BotActions(telegramClient, toDoItemService, deepSeekService, taskService);
-        actions.setRequestText(messageTextFromTelegram);
+        BotActions actions = new BotActions(
+                telegramClient,
+                toDoItemService,
+                deepSeekService,
+                taskService,
+                joinCodeService
+        );
+
+        actions.setRequestText(messageText);
         actions.setChatId(chatId);
         actions.setTelegramUsername(telegramUsername);
-
-        if (actions.getTodoService() == null) {
-            logger.info("todosvc error");
-            actions.setTodoService(toDoItemService);
-        }
-
-        if (actions.getTaskService() == null) {
-            logger.info("tasksvc error");
-            actions.setTaskService(taskService);
-        }
 
         if (actions.handleState()) {
             return;
         }
 
+        actions.fnConfigUser();
         actions.fnStart();
         actions.fnModfiyTask();
         actions.fnModName();
@@ -101,6 +99,6 @@ public class ToDoItemBotController implements SpringLongPollingBot, LongPollingS
 
     @AfterBotRegistration
     public void afterRegistration(BotSession botSession) {
-        System.out.println("Registered bot running state is: " + botSession.isRunning());
+        logger.info("Registered bot running state is: {}", botSession.isRunning());
     }
 }
