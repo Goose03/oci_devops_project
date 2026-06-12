@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -371,25 +372,79 @@ public class BotActions {
             return;
         }
 
+        send("""
+📋 Which tasks do you want to see?
+
+/MyTasksAll - All tasks
+/MyTasksTodo - Todo tasks
+/MyTasksProgress - In progress tasks
+/MyTasksDone - Done tasks
+""");
+
+        exit = true;
+    }
+
+    public void fnListMyTasksAll() {
+        if (!requestText.equals(BotCommands.MY_TASKS_ALL.getCommand()) || exit) {
+            return;
+        }
+
+        listTasks(null);
+        exit = true;
+    }
+
+    public void fnListMyTasksTodo() {
+        if (!requestText.equals(BotCommands.MY_TASKS_TODO.getCommand()) || exit) {
+            return;
+        }
+
+        listTasks("todo");
+        exit = true;
+    }
+
+    public void fnListMyTasksProgress() {
+        if (!requestText.equals(BotCommands.MY_TASKS_PROGRESS.getCommand()) || exit) {
+            return;
+        }
+
+        listTasks("in-progress");
+        exit = true;
+    }
+
+    public void fnListMyTasksDone() {
+        if (!requestText.equals(BotCommands.MY_TASKS_DONE.getCommand()) || exit) {
+            return;
+        }
+
+        listTasks("done");
+        exit = true;
+    }
+
+    private void listTasks(String statusFilter) {
         try {
             AppUser user = joinCodeService.getUserByTelegramChatId(chatId);
 
             List<TaskDTO> tasks = taskService.getTasksForUser(user.getId());
 
+            if (statusFilter != null) {
+                tasks = tasks.stream()
+                        .filter(task -> task.getStatus() != null)
+                        .filter(task -> statusFilter.equalsIgnoreCase(task.getStatus()))
+                        .collect(Collectors.toList());
+            }
+
             if (tasks == null || tasks.isEmpty()) {
-                send(BotMessages.MY_TASK_FAIL.getMessage());
-                exit = true;
+                send("📭 No tasks found.");
                 return;
             }
 
-            StringBuilder msg = new StringBuilder(BotMessages.MY_TASK_SUCC.getMessage());
+            StringBuilder msg = new StringBuilder("📋 Your tasks:");
 
             for (TaskDTO task : tasks) {
-                msg.append("\n🆔 ID: ").append(task.getId())
+                msg.append("\n\n🆔 ID: ").append(task.getId())
                         .append("\n📝 Title: ").append(task.getTitle())
                         .append("\n📌 Status: ").append(task.getStatus())
-                        .append("\n⏱️ Expected: ").append(task.getStoryPoints())
-                        .append("\n");
+                        .append("\n⏱️ Expected: ").append(task.getStoryPoints());
             }
 
             send(msg.toString());
@@ -398,8 +453,6 @@ public class BotActions {
             logger.error("Error listing tasks from Telegram", e);
             send("🚨 Your Telegram account is not linked. Use /ConfigUser first.");
         }
-
-        exit = true;
     }
 
     public void fnElse() {
