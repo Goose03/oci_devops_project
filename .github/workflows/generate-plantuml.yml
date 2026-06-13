@@ -1,0 +1,33 @@
+name: Generate PlantUML diagrams
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  generate-diagrams:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Generate diagrams
+        working-directory: MtdrSpring/backend
+        run: mvn clean compile
+
+      - name: Commit generated diagrams
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update generated PlantUML diagrams"
+          file_pattern: docs/diagrams/*.puml
