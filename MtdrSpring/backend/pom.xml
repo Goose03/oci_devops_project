@@ -117,8 +117,35 @@
 		</dependency>
  </dependencies>
 	<build>
-	
 		<plugins>
+
+			<plugin>
+				<groupId>de.elnarion.maven</groupId>
+				<artifactId>plantuml-generator-maven-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<outputDirectory>${project.basedir}/../../docs/diagrams</outputDirectory>
+					<outputFilename>backend-code-level4.puml</outputFilename>
+					<scanPackages>
+						<scanPackage>com.springboot.MyTodoList.controller</scanPackage>
+						<scanPackage>com.springboot.MyTodoList.service</scanPackage>
+						<scanPackage>com.springboot.MyTodoList.repository</scanPackage>
+						<scanPackage>com.springboot.MyTodoList.model</scanPackage>
+						<scanPackage>com.springboot.MyTodoList.security</scanPackage>
+						<scanPackage>com.springboot.MyTodoList.telegram</scanPackage>
+					</scanPackages>
+					<useShortClassNames>true</useShortClassNames>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generate-plantuml</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<!-- Keeps frontend and backend separate. -->
 			<plugin>
 				<groupId>com.github.eirslett</groupId>

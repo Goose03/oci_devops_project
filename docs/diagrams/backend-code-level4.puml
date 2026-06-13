@@ -1,0 +1,533 @@
+@startuml
+
+class AIInsight {
+	{field} +content : String
+	{field} +generatedAt : LocalDateTime
+	{field} +id : Long
+	{field} +week : String
+}
+
+
+interface AIInsightRepository {
+	{method}  {abstract} +existsByWeek ( week : String ) : boolean
+	{method}  {abstract} +findAllByOrderByWeekDesc () : List
+	{method}  {abstract} +findByWeek ( week : String ) : Optional
+}
+
+
+class AIInsightsController {
+	{method} +generateInsights ( auth : Authentication ) : ResponseEntity
+	{method} +generateTest () : ResponseEntity
+	{method} +getAllInsights () : ResponseEntity
+	{method} +getInsightByWeek ( week : String ) : ResponseEntity
+	{method} +test () : ResponseEntity
+}
+
+
+class AIInsightsService {
+	{method} -convertToDTO ( insight : AIInsight ) : AIInsightDTO
+	{method} -generateInsightContent ( userId : Long ) : String
+	{method} +generateNewInsight ( userId : Long ) : AIInsightDTO
+	{method} +getAllInsights () : List
+	{method} +getInsightByWeek ( week : String ) : AIInsightDTO
+}
+
+
+class AnalyticsController {
+	{field} {static} -log : Logger
+	{method} +getPriorityDistribution ( auth : Authentication , projectId : Long , sprintId : Long ) : ResponseEntity
+	{method} +getSprintKpis ( auth : Authentication , projectId : Long , sprintId : Long ) : ResponseEntity
+	{method} +getTaskCountBySprint ( auth : Authentication , projectId : Long ) : ResponseEntity
+	{method} +getTaskDistribution ( auth : Authentication , projectId : Long , sprintId : Long ) : ResponseEntity
+	{method} +getVelocity ( auth : Authentication , weeks : int , projectId : Long , sprintId : Long ) : ResponseEntity
+	{method} +getVelocityBySprint ( auth : Authentication , projectId : Long ) : ResponseEntity
+	{method} +getWorkedHours ( auth : Authentication , weeks : int , projectId : Long , sprintId : Long ) : ResponseEntity
+	{method} +getWorkedHoursBySprint ( auth : Authentication , projectId : Long ) : ResponseEntity
+}
+
+
+class AnalyticsService {
+	{field} {static} -log : Logger
+	{method} -getFilteredTasks ( userId : Long , projectId : Long , sprintId : Long ) : List
+	{method} +getPriorityDistribution ( userId : Long , projectId : Long , sprintId : Long ) : List
+	{method} +getSprintKpis ( userId : Long , projectId : Long , sprintId : Long ) : SprintKpiDTO
+	{method} +getTaskCountBySprint ( userId : Long , projectId : Long ) : List
+	{method} +getTaskDistribution ( userId : Long , projectId : Long , sprintId : Long ) : List
+	{method} -getTasksForUser ( userId : Long ) : List
+	{method} +getVelocity ( userId : Long , weeks : int , projectId : Long , sprintId : Long ) : List
+	{method} +getVelocityBySprint ( userId : Long , projectId : Long ) : List
+	{method} +getWorkedHoursBySprint ( userId : Long , projectId : Long ) : List
+	{method} +getWorkedHoursPerUser ( userId : Long , weeks : int , projectId : Long , sprintId : Long ) : List
+	{method} -lastNWeekLabels ( n : int ) : List
+	{method} -toWeekLabel ( dt : LocalDateTime ) : String
+}
+
+
+class AppUser {
+	{field} +bio : String
+	{field} +createdAt : LocalDateTime
+	{field} +email : String
+	{field} +id : Long
+	{field} +name : String
+	{field} +password : String
+	{field} +role : String
+	{field} +telegramChatId : Long
+	{field} +telegramConnected : Boolean
+	{field} +telegramUsername : String
+	{method} #onCreate () : void
+}
+
+
+class AppUserController {
+	{field} {static} -log : Logger
+	{method} +getMe ( auth : Authentication ) : ResponseEntity
+	{method} +updateProfile ( auth : Authentication , request : UpdateProfileRequest ) : ResponseEntity
+}
+
+
+interface AppUserRepository {
+	{method}  {abstract} +existsByEmail ( email : String ) : boolean
+	{method}  {abstract} +findByEmail ( email : String ) : Optional
+	{method}  {abstract} +findByTelegramChatId ( telegramChatId : Long ) : Optional
+	{method}  {abstract} +findByTelegramUsernameIgnoreCase ( telegramUsername : String ) : Optional
+}
+
+
+class AuthController {
+	{field} {static} -log : Logger
+	{method} +login ( request : LoginRequest ) : ResponseEntity
+	{method} +logout () : ResponseEntity
+	{method} +register ( request : RegisterRequest ) : ResponseEntity
+}
+
+
+class AuthService {
+	{field} {static} -log : Logger
+	{field} -passwordEncoder : PasswordEncoder
+	{method} +login ( request : LoginRequest ) : AuthResponse
+	{method} +register ( request : RegisterRequest ) : AuthResponse
+}
+
+
+class DeepSeekService {
+	{field} -httpClient : CloseableHttpClient
+	{field} -httpPost : HttpPost
+	{method} +generateText ( prompt : String ) : String
+}
+
+
+class JoinCode {
+	{field} +createdAt : LocalDateTime
+	{field} +expiration : LocalDateTime
+	{field} +joinCode : String
+	{field} +usedAt : LocalDateTime
+	{method} +isValid () : boolean
+	{method} #onCreate () : void
+}
+
+
+interface JoinCodeRepository {
+	{method}  {abstract} +findByJoinCode ( joinCode : String ) : Optional
+}
+
+
+class JoinCodeService {
+	{field} {static} -EXPIRY_MINUTES : int
+	{field} {static} -log : Logger
+	{method} +generateCode ( userId : Long ) : String
+	{method} +getUserByTelegramChatId ( telegramChatId : Long ) : AppUser
+	{method} +linkTelegramAccount ( code : String , telegramChatId : Long , telegramUsername : String ) : AppUser
+}
+
+
+class JwtAuthenticationFilter {
+	{field} {static} -log : Logger
+	{method} #doFilterInternal ( request : HttpServletRequest , response : HttpServletResponse , filterChain : FilterChain ) : void
+}
+
+
+class JwtTokenProvider {
+	{field} -jwtExpiration : long
+	{field} -jwtSecret : String
+	{field} {static} -log : Logger
+	{method} +generateToken ( userId : Long ) : String
+	{method} -getSigningKey () : SecretKey
+	{method} +getUserIdFromToken ( token : String ) : Long
+	{method} +validateToken ( token : String ) : boolean
+}
+
+
+class KPIAnalysisService {
+	{method} +getPriorityDistribution ( userId : Long ) : String
+	{method} +getVelocityTrends ( userId : Long ) : String
+	{method} +getWorkedHours ( userId : Long ) : String
+	{method} +getWorkloadDistribution ( userId : Long ) : String
+}
+
+
+class OpenAIService {
+	{field} -apiKey : String
+	{field} -httpClient : HttpClient
+	{field} -objectMapper : ObjectMapper
+	{method} +generateText ( prompt : String ) : String
+}
+
+
+class Project {
+	{field} +createdAt : LocalDateTime
+	{field} +description : String
+	{field} +id : Long
+	{field} +key : String
+	{field} +name : String
+	{field} +status : String
+	{field} +updatedAt : LocalDateTime
+	{method} #onCreate () : void
+	{method} #onUpdate () : void
+}
+
+
+class ProjectController {
+	{field} {static} -log : Logger
+	{method} +createProject ( auth : Authentication , request : CreateProjectRequest ) : ResponseEntity
+	{method} +deleteProject ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getProjectById ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getProjectTasks ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getProjects ( auth : Authentication ) : ResponseEntity
+	{method} +updateProject ( auth : Authentication , id : Long , request : UpdateProjectRequest ) : ResponseEntity
+}
+
+
+interface ProjectRepository {
+	{method}  {abstract} +findByTeam ( team : Team ) : List
+	{method}  {abstract} +findByTeamIn ( teams : List ) : List
+}
+
+
+class ProjectService {
+	{field} {static} -log : Logger
+	{method} +createProject ( userId : Long , request : CreateProjectRequest ) : ProjectDTO
+	{method} +deleteProject ( userId : Long , projectId : Long ) : void
+	{method} +getProjectById ( projectId : Long ) : ProjectDTO
+	{method} +getProjectsByTeam ( userId : Long , teamId : Long ) : List
+	{method} +getUserProjects ( userId : Long ) : List
+	{method} +updateProject ( userId : Long , projectId : Long , request : UpdateProjectRequest ) : ProjectDTO
+}
+
+
+class SpaController {
+	{method} +spa () : String
+}
+
+
+class Sprint {
+	{field} +endDate : LocalDate
+	{field} +goal : String
+	{field} +id : Long
+	{field} +name : String
+	{field} +startDate : LocalDate
+	{field} +status : String
+	{method} #onCreate () : void
+}
+
+
+class SprintController {
+	{field} {static} -log : Logger
+	{method} +createSprint ( auth : Authentication , request : CreateSprintRequest ) : ResponseEntity
+	{method} +getSprints ( auth : Authentication , projectId : String ) : ResponseEntity
+}
+
+
+interface SprintRepository {
+	{method}  {abstract} +findByProjectId ( projectId : Long ) : List
+	{method}  {abstract} +findByProjectIn ( projects : List ) : List
+}
+
+
+class SprintService {
+	{field} {static} -log : Logger
+	{method} +createSprint ( userId : Long , request : CreateSprintRequest ) : SprintDTO
+	{method} +getSprintsByProject ( projectId : Long ) : List
+	{method} +getSprintsByUser ( userId : Long ) : List
+}
+
+
+class Task {
+	{field} +completedAt : LocalDateTime
+	{field} +createdAt : LocalDateTime
+	{field} +description : String
+	{field} +id : Long
+	{field} +priority : String
+	{field} +status : String
+	{field} +storyPoints : Integer
+	{field} +tagsStr : String
+	{field} +title : String
+	{field} +type : String
+	{field} +updatedAt : LocalDateTime
+	{field} +workedHours : Integer
+	{method} +getTags () : List
+	{method} #onCreate () : void
+	{method} #onUpdate () : void
+	{method} +setTags ( tags : List ) : void
+}
+
+
+class TaskComment {
+	{field} +content : String
+	{field} +createdAt : LocalDateTime
+	{field} +id : Long
+	{method} #onCreate () : void
+}
+
+
+interface TaskCommentRepository {
+}
+
+
+class TaskController {
+	{field} {static} -log : Logger
+	{method} +createTask ( auth : Authentication , request : CreateTaskRequest ) : ResponseEntity
+	{method} +deleteTask ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTaskById ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTasks ( auth : Authentication , projectId : String , sprintId : String , assigneeId : String , status : String ) : ResponseEntity
+	{method} +updateTask ( auth : Authentication , id : Long , request : UpdateTaskRequest ) : ResponseEntity
+}
+
+
+interface TaskRepository {
+	{method}  {abstract} +findByAssigneeId ( assigneeId : Long ) : List
+	{method}  {abstract} +findByProjectId ( projectId : Long ) : List
+	{method}  {abstract} +findByProjectIdAndSprintId ( projectId : Long , sprintId : Long ) : List
+	{method}  {abstract} +findByProjectIn ( projects : List ) : List
+	{method}  {abstract} +findBySprintId ( sprintId : Long ) : List
+	{method}  {abstract} +findByStatus ( status : String ) : List
+}
+
+
+class TaskService {
+	{field} {static} -log : Logger
+	{method} +createTask ( userId : Long , request : CreateTaskRequest ) : TaskDTO
+	{method} +createTaskFromTelegram ( telegramUsername : String , title : String , expectedHours : Integer ) : TaskDTO
+	{method} +deleteTask ( userId : Long , taskId : Long ) : void
+	{method} +getTaskById ( taskId : Long ) : TaskDTO
+	{method} +getTasks ( userId : Long , projectId : String , sprintId : String , assigneeId : String , status : String ) : List
+	{method} +getTasksForUser ( userId : Long ) : List
+	{method} +updateTask ( userId : Long , taskId : Long , request : UpdateTaskRequest ) : TaskDTO
+}
+
+
+class Team {
+	{field} +createdAt : LocalDateTime
+	{field} +description : String
+	{field} +id : Long
+	{field} +joinCode : String
+	{field} +name : String
+	{method} #onCreate () : void
+}
+
+
+class TeamController {
+	{field} {static} -log : Logger
+	{method} +createTeam ( auth : Authentication , request : CreateTeamRequest ) : ResponseEntity
+	{method} +getTeamById ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTeamMembers ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTeamProjects ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTeamSprints ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTeamTasks ( auth : Authentication , id : Long ) : ResponseEntity
+	{method} +getTeams ( auth : Authentication ) : ResponseEntity
+	{method} +inviteMember ( auth : Authentication , id : Long , request : InviteMemberRequest ) : ResponseEntity
+	{method} +joinTeam ( auth : Authentication , request : JoinTeamRequest ) : ResponseEntity
+}
+
+
+class TeamMembership {
+	{field} +id : Long
+	{field} +role : String
+}
+
+
+interface TeamMembershipRepository {
+	{method}  {abstract} +existsByUserAndTeam ( user : AppUser , team : Team ) : boolean
+	{method}  {abstract} +findByTeam ( team : Team ) : List
+	{method}  {abstract} +findByUser ( user : AppUser ) : List
+	{method}  {abstract} +findByUserAndTeam ( user : AppUser , team : Team ) : Optional
+}
+
+
+interface TeamRepository {
+	{method}  {abstract} +findByJoinCode ( joinCode : String ) : Optional
+}
+
+
+class TeamService {
+	{field} {static} -log : Logger
+	{method} -buildTeamDTO ( team : Team ) : TeamDTO
+	{method} +createTeam ( userId : Long , request : CreateTeamRequest ) : CreateTeamResponse
+	{method} -generateJoinCode () : String
+	{method} +getTeamById ( teamId : Long ) : TeamDTO
+	{method} +getTeamMembers ( teamId : Long ) : List
+	{method} +getTeamSprints ( teamId : Long ) : List
+	{method} +getTeamTasks ( teamId : Long ) : List
+	{method} +getUserTeams ( userId : Long ) : List
+	{method} +inviteMember ( teamId : Long , request : InviteMemberRequest ) : TeamMemberDTO
+	{method} +joinTeam ( userId : Long , request : JoinTeamRequest ) : JoinTeamResponse
+	{method} +verifyUserByJoinCodeAndEmail ( joinCode : String , email : String ) : boolean
+}
+
+
+class TelegramController {
+	{field} {static} -log : Logger
+	{method} +generateJoinCode ( auth : Authentication ) : ResponseEntity
+}
+
+
+class ToDoItem {
+	{field} +ID : int
+	{field} +creation_ts : OffsetDateTime
+	{field} +description : String
+	{field} +done : boolean
+	{method} +toString () : String
+}
+
+
+class ToDoItemBotController {
+	{field} -botProps : BotProps
+	{field} {static} -logger : Logger
+	{field} -telegramClient : TelegramClient
+	{method} +afterRegistration ( botSession : BotSession ) : void
+	{method} +consume ( update : Update ) : void
+	{method} +getBotToken () : String
+	{method} +getUpdatesConsumer () : LongPollingUpdateConsumer
+}
+
+
+class ToDoItemController {
+	{method} +addToDoItem ( todoItem : ToDoItem ) : ResponseEntity
+	{method} +deleteToDoItem ( id : int ) : ResponseEntity
+	{method} +getAllToDoItems () : List
+	{method} +getToDoItemById ( id : int ) : ResponseEntity
+	{method} +updateToDoItem ( toDoItem : ToDoItem , id : int ) : ResponseEntity
+}
+
+
+interface ToDoItemRepository {
+}
+
+
+class ToDoItemService {
+	{method} +addToDoItem ( toDoItem : ToDoItem ) : ToDoItem
+	{method} +deleteToDoItem ( id : int ) : boolean
+	{method} +findAll () : List
+	{method} +getItemById ( id : int ) : ResponseEntity
+	{method} +getToDoItemById ( id : int ) : ToDoItem
+	{method} +updateToDoItem ( id : int , td : ToDoItem ) : ToDoItem
+}
+
+
+class User {
+	{field} +ID : int
+	{field} +phonenumber : String
+	{field} +userpassword : String
+}
+
+
+class UserController {
+	{method} +addUser ( newUser : User ) : ResponseEntity
+	{method} +deleteUser ( id : int ) : ResponseEntity
+	{method} +getAllUsers () : List
+	{method} +getUserById ( id : int ) : ResponseEntity
+	{method} +test () : User
+	{method} +updateUser ( user : User , id : int ) : ResponseEntity
+}
+
+
+interface UserRepository {
+}
+
+
+class UserService {
+	{method} +addUser ( newUser : User ) : User
+	{method} +deleteUser ( id : int ) : boolean
+	{method} +findAll () : List
+	{method} +getUserById ( id : int ) : ResponseEntity
+	{method} +test () : User
+	{method} +updateUser ( id : int , user2update : User ) : User
+}
+
+
+class WebSecurityConfiguration {
+	{method} +corsConfigurationSource () : CorsConfigurationSource
+	{method} +passwordEncoder () : PasswordEncoder
+	{method} +securityFilterChain ( http : HttpSecurity ) : SecurityFilterChain
+}
+
+
+
+
+AIInsightsController -->  AIInsightsService : aiInsightsService
+AIInsightsService -->  AIInsightRepository : aiInsightRepository
+AIInsightsService -->  KPIAnalysisService : kpiAnalysisService
+AIInsightsService -->  OpenAIService : openAIService
+AnalyticsController -->  AnalyticsService : analyticsService
+AnalyticsService -->  AppUserRepository : userRepository
+AnalyticsService -->  ProjectRepository : projectRepository
+AnalyticsService -->  SprintRepository : sprintRepository
+AnalyticsService -->  TaskRepository : taskRepository
+AnalyticsService -->  TeamMembershipRepository : membershipRepository
+AppUserController -->  AppUserRepository : userRepository
+AuthController -->  AuthService : authService
+AuthService -->  AppUserRepository : userRepository
+AuthService -->  JwtTokenProvider : jwtTokenProvider
+JoinCode -->  AppUser :  @ManyToOne\nuser
+JoinCodeService -->  AppUserRepository : userRepository
+JoinCodeService -->  JoinCodeRepository : joinCodeRepository
+JwtAuthenticationFilter -->  JwtTokenProvider : jwtTokenProvider
+KPIAnalysisService -->  AnalyticsService : analyticsService
+Project -->  Team :  @ManyToOne\nteam
+ProjectController -->  ProjectService : projectService
+ProjectController -->  TaskService : taskService
+ProjectService -->  AppUserRepository : userRepository
+ProjectService -->  ProjectRepository : projectRepository
+ProjectService -->  TeamMembershipRepository : membershipRepository
+ProjectService -->  TeamRepository : teamRepository
+Sprint -->  Project :  @ManyToOne\nproject
+SprintController -->  SprintService : sprintService
+SprintService -->  AppUserRepository : userRepository
+SprintService -->  ProjectRepository : projectRepository
+SprintService -->  SprintRepository : sprintRepository
+SprintService -->  TeamMembershipRepository : membershipRepository
+Task "1" o-- "0..*"  TaskComment : comments
+Task -->  AppUser :  @ManyToOne\nassignee
+Task -->  AppUser :  @ManyToOne\ncreatedBy
+Task -->  Project :  @ManyToOne\nproject
+Task -->  Sprint :  @ManyToOne\nsprint
+TaskComment -->  AppUser :  @ManyToOne\nuser
+TaskComment -->  Task :  @ManyToOne\ntask
+TaskController -->  TaskService : taskService
+TaskService -->  AppUserRepository : userRepository
+TaskService -->  ProjectRepository : projectRepository
+TaskService -->  SprintRepository : sprintRepository
+TaskService -->  TaskRepository : taskRepository
+TaskService -->  TeamMembershipRepository : membershipRepository
+TeamController -->  ProjectService : projectService
+TeamController -->  TeamService : teamService
+TeamMembership -->  AppUser :  @ManyToOne\nuser
+TeamMembership -->  Team :  @ManyToOne\nteam
+TeamService -->  AppUserRepository : userRepository
+TeamService -->  ProjectRepository : projectRepository
+TeamService -->  SprintRepository : sprintRepository
+TeamService -->  TaskRepository : taskRepository
+TeamService -->  TeamMembershipRepository : membershipRepository
+TeamService -->  TeamRepository : teamRepository
+TelegramController -->  JoinCodeService : joinCodeService
+ToDoItemBotController *--  DeepSeekService : deepSeekService
+ToDoItemBotController *--  JoinCodeService : joinCodeService
+ToDoItemBotController *--  TaskService : taskService
+ToDoItemBotController *--  ToDoItemService : toDoItemService
+ToDoItemController -->  ToDoItemService : toDoItemService
+ToDoItemService -->  ToDoItemRepository : toDoItemRepository
+UserController -->  UserService : userService
+UserService -->  UserRepository : userRepository
+WebSecurityConfiguration -->  JwtAuthenticationFilter : jwtAuthenticationFilter
+
+
+@enduml
